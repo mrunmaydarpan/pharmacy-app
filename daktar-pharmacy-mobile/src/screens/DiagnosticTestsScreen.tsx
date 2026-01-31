@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
 import apiService from '../services/apiService';
@@ -32,12 +33,12 @@ export default function DiagnosticTestsScreen({ navigation }: any) {
       } else {
         setLoadingMore(true);
       }
-      
+
       const response = await apiService.getDiagnosticBookings(pharmacy.id, pageNum, 10);
       console.log('Diagnostic bookings:', response.data);
-      
+
       const items = response.data.items || [];
-      
+
       // Group bookings by patient
       const patientMap = new Map();
       items.forEach((item: any) => {
@@ -52,15 +53,15 @@ export default function DiagnosticTestsScreen({ navigation }: any) {
           patientMap.get(patientId).bookings.push(item);
         }
       });
-      
+
       const groupedPatients = Array.from(patientMap.values());
-      
+
       if (append) {
         setPatients(prev => [...prev, ...groupedPatients]);
       } else {
         setPatients(groupedPatients);
       }
-      
+
       setPage(pageNum);
       setTotalPages(response.data.pagination?.totalPages || 1);
     } catch (error) {
@@ -110,10 +111,10 @@ export default function DiagnosticTestsScreen({ navigation }: any) {
   const renderPatientItem = ({ item }: any) => {
     const isExpanded = expandedPatients.has(item.patient.id);
     const totalAmount = item.bookings.reduce((sum: number, b: any) => sum + parseFloat(b.amount || 0), 0);
-    
+
     return (
       <View style={styles.patientCard}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.patientHeader}
           onPress={() => togglePatient(item.patient.id)}
         >
@@ -132,7 +133,7 @@ export default function DiagnosticTestsScreen({ navigation }: any) {
             <Text style={styles.expandIcon}>{isExpanded ? '▼' : '▶'}</Text>
           </View>
         </TouchableOpacity>
-        
+
         {isExpanded && (
           <View style={styles.bookingsList}>
             {item.bookings.map((booking: any) => renderBookingItem(booking))}
@@ -160,7 +161,7 @@ export default function DiagnosticTestsScreen({ navigation }: any) {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Header />
       <TouchableOpacity
         style={styles.addButton}
@@ -185,7 +186,7 @@ export default function DiagnosticTestsScreen({ navigation }: any) {
           </View>
         }
       />
-    </View>
+    </SafeAreaView>
   );
 }
 

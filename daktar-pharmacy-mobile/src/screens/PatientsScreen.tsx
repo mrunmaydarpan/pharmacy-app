@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, TextInput, Modal } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
 import apiService from '../services/apiService';
@@ -28,25 +29,25 @@ export default function PatientsScreen({ navigation }: any) {
       setLoading(false);
       return;
     }
-    
+
     try {
       if (pageNum === 1) {
         setLoading(true);
       } else {
         setLoadingMore(true);
       }
-      
+
       const response = await apiService.getPatients(pharmacy.id, pageNum, 10);
       console.log('Patients API response:', response.data);
       const patientsData = response.data.bookings || [];
       const pagination = response.data.pagination || {};
-      
+
       if (append) {
         setPatients(prev => [...prev, ...patientsData]);
       } else {
         setPatients(patientsData);
       }
-      
+
       setTotalPages(pagination.totalPages || 1);
       setPage(pageNum);
     } catch (error) {
@@ -74,11 +75,11 @@ export default function PatientsScreen({ navigation }: any) {
     try {
       setLoading(true);
       const response = await apiService.deletePatient(patientId);
-      
+
       const message = response.data?.message || 'Booking cancelled successfully';
       setResponseMessage({ title: 'Success', message, type: 'success' });
       setShowResponseModal(true);
-      
+
       // Reload the list
       loadPatients(1);
     } catch (error: any) {
@@ -90,7 +91,7 @@ export default function PatientsScreen({ navigation }: any) {
     }
   };
 
-  const filteredPatients = patients.filter(patient => 
+  const filteredPatients = patients.filter(patient =>
     patient.patient_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     patient.patient_mobile?.includes(searchQuery)
   );
@@ -103,20 +104,20 @@ export default function PatientsScreen({ navigation }: any) {
             {item.patient_name?.charAt(0).toUpperCase() || '?'}
           </Text>
         </View>
-        
+
         <View style={styles.patientInfo}>
           <View style={styles.headerRow}>
             <Text style={styles.patientName}>{item.patient_name || 'Unknown'}</Text>
           </View>
-          
+
           <Text style={styles.phoneNumber}>📞 {item.patient_mobile || 'N/A'}</Text>
-          
+
           {item.doctor_name && item.doctor_name !== 'N/A' && (
             <Text style={styles.doctorName} numberOfLines={1}>
               Dr: {item.doctor_name}
             </Text>
           )}
-          
+
           <View style={styles.footer}>
             <View style={styles.appointmentInfo}>
               {item.date && (
@@ -126,7 +127,7 @@ export default function PatientsScreen({ navigation }: any) {
               )}
               {item.slot && <Text style={styles.slotText}>🕐 {item.slot}</Text>}
             </View>
-            
+
             {item.status && (
               <View style={[
                 styles.statusBadge,
@@ -137,9 +138,9 @@ export default function PatientsScreen({ navigation }: any) {
               </View>
             )}
           </View>
-          
+
           {item.status === 'CREATED' && (
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.cancelButton}
               onPress={() => handleCancelBooking(item.id)}
             >
@@ -169,7 +170,7 @@ export default function PatientsScreen({ navigation }: any) {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Header />
       {/* Search Bar */}
       <View style={styles.searchContainer}>
@@ -229,7 +230,7 @@ export default function PatientsScreen({ navigation }: any) {
             <Text style={styles.confirmMessage}>
               Are you sure you want to cancel this booking?
             </Text>
-            
+
             <View style={styles.confirmButtons}>
               <TouchableOpacity
                 style={[styles.confirmButton, styles.confirmButtonNo]}
@@ -266,10 +267,10 @@ export default function PatientsScreen({ navigation }: any) {
                 {responseMessage.type === 'success' ? '✓' : '✕'}
               </Text>
             </View>
-            
+
             <Text style={styles.responseTitle}>{responseMessage.title}</Text>
             <Text style={styles.responseText}>{responseMessage.message}</Text>
-            
+
             <TouchableOpacity
               style={[
                 styles.responseButton,
@@ -282,7 +283,7 @@ export default function PatientsScreen({ navigation }: any) {
           </View>
         </View>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 }
 

@@ -45,129 +45,129 @@ export default function DashboardScreen({ navigation }: any) {
     <SafeAreaView style={styles.safeArea}>
       <Header />
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <View style={styles.searchBar}>
-          <Text style={styles.searchIcon}>🔍</Text>
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search a Doctor"
-            placeholderTextColor="#999"
-          />
-          <TouchableOpacity style={styles.micIcon}>
-            <Text style={styles.micText}>🎤</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* Medical Center Banner */}
-      <View style={styles.bannerContainer}>
-        <View style={styles.banner}>
-          <View style={styles.bannerContent}>
-            <Text style={styles.bannerTitle}>Medical Center</Text>
-            <Text style={styles.bannerText}>
-              Yorem ipsum dolor sit amet,{'\n'}consectetur adipiscing elit. Nunc{'\n'}vulputate libero et velit interdum,{'\n'}ac aliquet odio mattis.
-            </Text>
-          </View>
-          <View style={styles.bannerImagePlaceholder}>
-            <Text style={styles.doctorEmoji}>👩‍⚕️</Text>
-          </View>
-        </View>
-        <View style={styles.pagination}>
-          {[0, 1, 2, 3].map((index) => (
-            <View
-              key={index}
-              style={[styles.dot, index === 1 && styles.activeDot]}
+        {/* Search Bar */}
+        <View style={styles.searchContainer}>
+          <View style={styles.searchBar}>
+            <Text style={styles.searchIcon}>🔍</Text>
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search a Doctor"
+              placeholderTextColor="#999"
             />
-          ))}
-        </View>
-      </View>
-
-      {/* Categories Section */}
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Categories</Text>
-          <TouchableOpacity>
-            <Text style={styles.seeAll}>See All</Text>
-          </TouchableOpacity>
-        </View>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoriesScroll}>
-          {specialities.map((speciality) => (
-            <TouchableOpacity key={speciality.id} style={styles.categoryCard}>
-              {speciality.image_url ? (
-                <Image
-                  source={{ uri: `https://daaktar.com${speciality.image_url}` }}
-                  style={styles.categoryImage}
-                  resizeMode="cover"
-                />
-              ) : (
-                <View style={styles.categoryIconContainer}>
-                  <Text style={styles.categoryIcon}>🏥</Text>
-                </View>
-              )}
-              <View style={styles.categoryOverlay}>
-                <Text style={styles.categoryName} numberOfLines={1}>{speciality.name}</Text>
-              </View>
+            <TouchableOpacity style={styles.micIcon}>
+              <Text style={styles.micText}>🎤</Text>
             </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
-
-      {/* All Doctors Section */}
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>All Doctors</Text>
-          <TouchableOpacity>
-            <Text style={styles.seeAll}>See All</Text>
-          </TouchableOpacity>
+          </View>
         </View>
-        {doctors.slice(0, 3).map((doctor) => (
-          <View key={doctor.id} style={styles.doctorCard}>
-            <View style={styles.doctorImageContainer}>
-              {doctor.image_url ? (
-                <Image
-                  source={{ uri: `https://daaktar.com${doctor.image_url}` }}
-                  style={styles.doctorImage}
-                  resizeMode="cover"
-                />
-              ) : (
-                <View style={styles.doctorAvatar}>
-                  <Text style={styles.doctorAvatarText}>
-                    {doctor.name?.charAt(0).toUpperCase() || 'D'}
-                  </Text>
-                </View>
-              )}
-            </View>
-            <View style={styles.doctorInfo}>
-              <View style={styles.doctorHeader}>
-                <Text style={styles.doctorName}>Dr. {doctor.name}</Text>
-                <TouchableOpacity style={styles.favoriteIcon}>
-                  <Text style={styles.heartIcon}>🤍</Text>
-                </TouchableOpacity>
-              </View>
-              <Text style={styles.doctorDescription} numberOfLines={2}>
-                {doctor.speciality || 'Specialist Doctor'}{'\n'}
-                {doctor.designation || 'Medical Professional'}
+
+        {/* Medical Center Banner */}
+        <View style={styles.bannerContainer}>
+          <View style={styles.banner}>
+            <View style={styles.bannerContent}>
+              <Text style={styles.bannerTitle}>Medical Center</Text>
+              <Text style={styles.bannerText}>
+                Yorem ipsum dolor sit amet,{'\n'}consectetur adipiscing elit. Nunc{'\n'}vulputate libero et velit interdum,{'\n'}ac aliquet odio mattis.
               </Text>
-              <View style={styles.doctorFooter}>
-                <TouchableOpacity 
-                  style={styles.bookButton}
-                  onPress={() => navigation.navigate('AddPatient')}
-                >
-                  <Text style={styles.bookButtonText}>Book</Text>
-                </TouchableOpacity>
-                <View style={styles.rating}>
-                  <Text style={styles.starIcon}>⭐</Text>
-                  <Text style={styles.ratingText}>5.0</Text>
-                </View>
-              </View>
+            </View>
+            <View style={styles.bannerImagePlaceholder}>
+              <Text style={styles.doctorEmoji}>👩‍⚕️</Text>
             </View>
           </View>
-        ))}
-      </View>
+          <View style={styles.pagination}>
+            {[0, 1, 2, 3].map((index) => (
+              <View
+                key={index}
+                style={[styles.dot, index === 1 && styles.activeDot]}
+              />
+            ))}
+          </View>
+        </View>
 
-      <View style={{ height: 20 }} />
-    </ScrollView>
+        {/* Categories Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Categories</Text>
+            <TouchableOpacity>
+              <Text style={styles.seeAll}>See All</Text>
+            </TouchableOpacity>
+          </View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoriesScroll}>
+            {specialities.map((speciality) => (
+              <TouchableOpacity key={speciality.id} style={styles.categoryCard}>
+                {speciality.image_url ? (
+                  <Image
+                    source={{ uri: `https://daaktar.com${speciality.image_url}` }}
+                    style={styles.categoryImage}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <View style={styles.categoryIconContainer}>
+                    <Text style={styles.categoryIcon}>🏥</Text>
+                  </View>
+                )}
+                <View style={styles.categoryOverlay}>
+                  <Text style={styles.categoryName} numberOfLines={1}>{speciality.name}</Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+
+        {/* All Doctors Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>All Doctors</Text>
+            <TouchableOpacity>
+              <Text style={styles.seeAll}>See All</Text>
+            </TouchableOpacity>
+          </View>
+          {doctors.slice(0, 3).map((doctor) => (
+            <View key={doctor.id} style={styles.doctorCard}>
+              <View style={styles.doctorImageContainer}>
+                {doctor.image_url ? (
+                  <Image
+                    source={{ uri: `https://daaktar.com${doctor.image_url}` }}
+                    style={styles.doctorImage}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <View style={styles.doctorAvatar}>
+                    <Text style={styles.doctorAvatarText}>
+                      {doctor.name?.charAt(0).toUpperCase() || 'D'}
+                    </Text>
+                  </View>
+                )}
+              </View>
+              <View style={styles.doctorInfo}>
+                <View style={styles.doctorHeader}>
+                  <Text style={styles.doctorName}>Dr. {doctor.name}</Text>
+                  <TouchableOpacity style={styles.favoriteIcon}>
+                    <Text style={styles.heartIcon}>🤍</Text>
+                  </TouchableOpacity>
+                </View>
+                <Text style={styles.doctorDescription} numberOfLines={2}>
+                  {doctor.speciality || 'Specialist Doctor'}{'\n'}
+                  {doctor.designation || 'Medical Professional'}
+                </Text>
+                <View style={styles.doctorFooter}>
+                  <TouchableOpacity
+                    style={styles.bookButton}
+                    onPress={() => navigation.navigate('AddPatient')}
+                  >
+                    <Text style={styles.bookButtonText}>Book</Text>
+                  </TouchableOpacity>
+                  <View style={styles.rating}>
+                    <Text style={styles.starIcon}>⭐</Text>
+                    <Text style={styles.ratingText}>5.0</Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+          ))}
+        </View>
+
+        <View style={{ height: 110 }} />
+      </ScrollView>
     </SafeAreaView>
   );
 }

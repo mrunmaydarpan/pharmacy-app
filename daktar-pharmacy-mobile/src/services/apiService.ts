@@ -57,7 +57,15 @@ class ApiService {
     return this.client.get('/specialities');
   }
 
+  async fetchTests() {  //to fetch list of tests
+    return this.client.get('/lab-tests');
+  }
+
   // Patient endpoints
+  async fetchPatients(limit: number = 100, page: number = 1) {  //to fetch list of patients
+    return this.client.get(`/patient?limit=${limit}&page=${page}`);
+  }
+
   async getPatients(pharmacyId: number, page: number = 1, limit: number = 10) {
     return this.client.get(`/patient/list?pharmacyId=${pharmacyId}&page=${page}&limit=${limit}`);
   }
@@ -68,6 +76,10 @@ class ApiService {
 
   async createPatient(data: any) {
     return this.client.post('/patient', data);
+  }
+
+  async createNewPatient(data: any) {
+    return this.client.post('/patient/add', data); //to create new patient inside diagnostic page
   }
 
   async addBooking(data: any) {
@@ -121,10 +133,10 @@ class ApiService {
   }
 
   async debitWallet(pharmacyId: number, amount: number, note: string) {
-    return this.client.post('/pharmacy-wallet/debit', { 
-      pharmacyId, 
-      amount, 
-      note 
+    return this.client.post('/pharmacy-wallet/debit', {
+      pharmacyId,
+      amount,
+      note
     });
   }
 

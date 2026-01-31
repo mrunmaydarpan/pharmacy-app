@@ -1,0 +1,41 @@
+
+> daktar-pharmacy-mobile@1.0.0 lint
+> expo lint
+
+
+D:\DEV\Mobile\pharmacy-app\daktar-pharmacy-mobile\src\navigation\RootNavigator.tsx
+  69:10  warning  'ReportsStack' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\DEV\Mobile\pharmacy-app\daktar-pharmacy-mobile\src\screens\AddPatientScreen.tsx
+  13:3   warning  'Linking' is defined but never used     @typescript-eslint/no-unused-vars
+  16:13  warning  'WebBrowser' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\DEV\Mobile\pharmacy-app\daktar-pharmacy-mobile\src\screens\DashboardScreen.tsx
+  12:10  warning  'bannerIndex' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  12:23  warning  'setBannerIndex' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  37:9   warning  'categories' is assigned a value but never used      @typescript-eslint/no-unused-vars
+
+D:\DEV\Mobile\pharmacy-app\daktar-pharmacy-mobile\src\screens\DiagnosticTestsScreen.tsx
+  10:10  warning  'bookings' is assigned a value but never used                                                                    @typescript-eslint/no-unused-vars
+  10:20  warning  'setBookings' is assigned a value but never used                                                                 @typescript-eslint/no-unused-vars
+  20:6   warning  React Hook useEffect has a missing dependency: 'loadBookings'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+D:\DEV\Mobile\pharmacy-app\daktar-pharmacy-mobile\src\screens\LoginScreen.tsx
+  155:46  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+D:\DEV\Mobile\pharmacy-app\daktar-pharmacy-mobile\src\screens\PatientDetailScreen.tsx
+  37:6  warning  React Hook useEffect has a missing dependency: 'loadPatient'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+D:\DEV\Mobile\pharmacy-app\daktar-pharmacy-mobile\src\screens\PatientsScreen.tsx
+  23:6  warning  React Hook useEffect has a missing dependency: 'loadPatients'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+D:\DEV\Mobile\pharmacy-app\daktar-pharmacy-mobile\src\screens\ProfileScreen.tsx
+  8:3  warning  'Image' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\DEV\Mobile\pharmacy-app\daktar-pharmacy-mobile\src\screens\SignUpScreen.tsx
+   12:8   warning  'AsyncStorage' is defined but never used                         @typescript-eslint/no-unused-vars
+   14:10  warning  'setUser' is defined but never used                              @typescript-eslint/no-unused-vars
+  165:46  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+Γ£û 16 problems (2 errors, 14 warnings)
+

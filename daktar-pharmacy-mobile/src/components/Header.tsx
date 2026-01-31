@@ -6,11 +6,14 @@ import { RootState } from '../store';
 const { width, height } = Dimensions.get('window');
 const isSmallDevice = width < 375;
 
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 export default function Header() {
   const pharmacy = useSelector((state: RootState) => state.auth.pharmacy);
+  const insets = useSafeAreaInsets();
 
   return (
-    <View style={styles.header}>
+    <View style={[styles.header, { paddingTop: Math.max(insets.top, height * 0.02) }]}>
       <Image
         source={require('../../assets/images/daaktar-logo.png')}
         style={styles.logo}
@@ -23,6 +26,7 @@ export default function Header() {
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   header: {

@@ -81,28 +81,28 @@ export default function AddPatientScreen({ navigation }: any) {
 
     const dayNames = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
     const dayName = dayNames[date.getDay()];
-    
+
     return availableDays.includes(dayName) || availableDays.includes('WEDNESSDAY') && dayName === 'WEDNESDAY';
   };
 
   const generateCalendarDates = () => {
     const year = currentMonth.getFullYear();
     const month = currentMonth.getMonth();
-    
+
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
-    
+
     const dates = [];
     const startPadding = firstDay.getDay();
-    
+
     for (let i = 0; i < startPadding; i++) {
       dates.push(null);
     }
-    
+
     for (let day = 1; day <= lastDay.getDate(); day++) {
       dates.push(new Date(year, month, day));
     }
-    
+
     return dates;
   };
 
@@ -172,7 +172,7 @@ export default function AddPatientScreen({ navigation }: any) {
 
   const handlePayment = async (paymentMethod: 'wallet' | 'razorpay') => {
     setShowPaymentModal(false);
-    
+
     const pharmacyId = pharmacy?.id;
     const amount = selectedDoctor.fee || 0;
 
@@ -206,16 +206,16 @@ export default function AddPatientScreen({ navigation }: any) {
 
     // Handle Wallet payment
     setLoading(true);
-    
+
     try {
       // Step 1: Debit wallet
       const note = `Patient slot booking for ${name}`;
       const walletResponse = await apiService.debitWallet(pharmacyId, amount, note);
-      
+
       if (!walletResponse.data.success) {
         throw new Error('Wallet debit failed');
       }
-      
+
       console.log('Wallet debited, new balance:', walletResponse.data.balance);
 
       // Step 2: Book the appointment
@@ -233,24 +233,24 @@ export default function AddPatientScreen({ navigation }: any) {
       };
 
       const bookingResponse = await apiService.addBooking(bookingData);
-      
+
       console.log('Booking created:', bookingResponse.data);
 
       // Step 3: Success - navigate back
       Alert.alert('Success', 'Appointment booked successfully');
       navigation.goBack();
-      
+
     } catch (error: any) {
       console.error('Error booking appointment:', error);
-      
+
       let errorMessage = 'Failed to book appointment';
-      
+
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error.message) {
         errorMessage = error.message;
       }
-      
+
       Alert.alert('Error', errorMessage);
     } finally {
       setLoading(false);
@@ -262,17 +262,17 @@ export default function AddPatientScreen({ navigation }: any) {
       console.log('Raw message from WebView:', event.nativeEvent.data);
       const data = JSON.parse(event.nativeEvent.data);
       console.log('Parsed Razorpay message:', data);
-      
+
       setShowRazorpayWebView(false);
-      
+
       if (data.status === 'success') {
         // Payment successful - create booking
         setLoading(true);
-        
+
         try {
           const pharmacyId = pharmacy?.id;
           const amount = selectedDoctor.fee || 0;
-          
+
           const bookingData = {
             name,
             mobile: phone,
@@ -313,7 +313,7 @@ export default function AddPatientScreen({ navigation }: any) {
   const getRazorpayHTML = () => {
     const amount = selectedDoctor?.fee || 0;
     const amountInPaise = Math.round(amount * 100);
-    
+
     return `
 <!DOCTYPE html>
 <html>
@@ -610,495 +610,495 @@ export default function AddPatientScreen({ navigation }: any) {
       <Header />
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         <View style={styles.formContainer}>
-        {/* Patient Name & Mobile Row */}
-        <View style={styles.row}>
-          <View style={[styles.inputWrapper, styles.halfWidth]}>
-            <Text style={styles.label}>Patient Name *</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter patient name"
-              placeholderTextColor="#999"
-              value={name}
-              onChangeText={setName}
-              editable={!loading}
-            />
+          {/* Patient Name & Mobile Row */}
+          <View style={styles.row}>
+            <View style={[styles.inputWrapper, styles.halfWidth]}>
+              <Text style={styles.label}>Patient Name *</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Enter patient name"
+                placeholderTextColor="#999"
+                value={name}
+                onChangeText={setName}
+                editable={!loading}
+              />
+            </View>
+
+            <View style={[styles.inputWrapper, styles.halfWidth]}>
+              <Text style={styles.label}>Patient Mobile *</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Enter 10-digit mobile"
+                placeholderTextColor="#999"
+                value={phone}
+                onChangeText={(text) => {
+                  // Only allow numeric input
+                  const numericText = text.replace(/[^0-9]/g, '');
+                  setPhone(numericText);
+                }}
+                keyboardType="numeric"
+                maxLength={10}
+                editable={!loading}
+              />
+            </View>
           </View>
 
-          <View style={[styles.inputWrapper, styles.halfWidth]}>
-            <Text style={styles.label}>Patient Mobile *</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter 10-digit mobile"
-              placeholderTextColor="#999"
-              value={phone}
-              onChangeText={(text) => {
-                // Only allow numeric input
-                const numericText = text.replace(/[^0-9]/g, '');
-                setPhone(numericText);
-              }}
-              keyboardType="numeric"
-              maxLength={10}
-              editable={!loading}
-            />
-          </View>
-        </View>
-
-        {/* Select Location */}
-        <View style={styles.inputWrapper}>
-          <Text style={styles.label}>Select Location *</Text>
-          <TouchableOpacity
-            style={styles.dropdownButton}
-            onPress={() => setShowLocationModal(true)}
-            disabled={loading}
-          >
-            <Text style={[styles.dropdownText, !location && styles.placeholder]}>
-              {location || 'Select Location'}
-            </Text>
-            <Text style={styles.dropdownIcon}>▼</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Appointment Type */}
-        <View style={styles.inputWrapper}>
-          <Text style={styles.label}>Appointment Type *</Text>
-          <View style={styles.radioContainer}>
-            <TouchableOpacity
-              style={styles.radioButton}
-              onPress={() => setAppointmentType('physical')}
-              disabled={loading}
-            >
-              <View style={styles.radioCircle}>
-                {appointmentType === 'physical' && <View style={styles.radioSelected} />}
-              </View>
-              <Text style={styles.radioLabel}>🏥 Physical Consultation</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.radioButton}
-              onPress={() => setAppointmentType('virtual')}
-              disabled={loading}
-            >
-              <View style={styles.radioCircle}>
-                {appointmentType === 'virtual' && <View style={styles.radioSelected} />}
-              </View>
-              <Text style={styles.radioLabel}>💻 Virtual Consultation</Text>
-            </TouchableOpacity>
-          </View>
-          <Text style={styles.helpText}>
-            {appointmentType === 'physical' 
-              ? "In-person appointment at the doctor's clinic"
-              : 'Online video consultation with the doctor'}
-          </Text>
-        </View>
-
-        {/* Select Doctor */}
-        <View style={styles.inputWrapper}>
-          <Text style={styles.label}>Select Doctor *</Text>
-          <TouchableOpacity
-            style={styles.dropdownButton}
-            onPress={() => location ? setShowDoctorModal(true) : null}
-            disabled={loading || !location}
-          >
-            <Text style={[styles.dropdownText, !selectedDoctor && styles.placeholder]}>
-              {selectedDoctor ? selectedDoctor.name : (location ? 'Select a doctor' : 'Please select a location first')}
-            </Text>
-            <Text style={styles.dropdownIcon}>▼</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Date & Time Slot Row */}
-        <View style={styles.row}>
-          <View style={[styles.inputWrapper, styles.halfWidth]}>
-            <Text style={styles.label}>Date *</Text>
+          {/* Select Location */}
+          <View style={styles.inputWrapper}>
+            <Text style={styles.label}>Select Location *</Text>
             <TouchableOpacity
               style={styles.dropdownButton}
-              onPress={() => selectedDoctor ? setShowDatePicker(true) : null}
-              disabled={loading || !selectedDoctor}
-            >
-              <Text style={[styles.dropdownText, !date && styles.placeholder]}>
-                {date ? new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : (selectedDoctor ? 'Select date' : 'Select doctor first')}
-              </Text>
-              <Text style={styles.dropdownIcon}>📅</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={[styles.inputWrapper, styles.halfWidth]}>
-            <Text style={styles.label}>Time Slot *</Text>
-            <TouchableOpacity
-              style={styles.dropdownButton}
-              onPress={() => setShowTimeSlotModal(true)}
+              onPress={() => setShowLocationModal(true)}
               disabled={loading}
             >
-              <Text style={[styles.dropdownText, !timeSlot && styles.placeholder]}>
-                {timeSlot || 'Select Time Slot'}
+              <Text style={[styles.dropdownText, !location && styles.placeholder]}>
+                {location || 'Select Location'}
               </Text>
               <Text style={styles.dropdownIcon}>▼</Text>
             </TouchableOpacity>
           </View>
-        </View>
 
-        {/* Notes */}
-        <View style={styles.inputWrapper}>
-          <Text style={styles.label}>Notes</Text>
-          <TextInput
-            style={[styles.input, styles.textArea]}
-            placeholder="Additional notes..."
-            placeholderTextColor="#999"
-            value={notes}
-            onChangeText={setNotes}
-            multiline
-            numberOfLines={4}
-            editable={!loading}
-          />
-        </View>
-
-        {/* Submit & Cancel Buttons */}
-        <View style={styles.buttonRow}>
-          <TouchableOpacity
-            style={[styles.submitButton, loading && styles.submitButtonDisabled]}
-            onPress={handleSubmit}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.submitButtonText}>Submit</Text>
-            )}
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.cancelButton}
-            onPress={() => navigation.goBack()}
-            disabled={loading}
-          >
-            <Text style={styles.cancelButtonText}>Cancel</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* Location Modal */}
-      <Modal
-        visible={showLocationModal}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowLocationModal(false)}
-      >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setShowLocationModal(false)}
-        >
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Select Location</Text>
-            <ScrollView style={styles.modalList}>
-              {locations.map((loc) => (
-                <TouchableOpacity
-                  key={loc}
-                  style={styles.modalItem}
-                  onPress={() => {
-                    setLocation(loc);
-                    setShowLocationModal(false);
-                  }}
-                >
-                  <Text style={styles.modalItemText}>{loc}</Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-        </TouchableOpacity>
-      </Modal>
-
-      {/* Doctor Modal */}
-      <Modal
-        visible={showDoctorModal}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowDoctorModal(false)}
-      >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setShowDoctorModal(false)}
-        >
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Select Doctor</Text>
-            <ScrollView style={styles.modalList}>
-              {doctors.map((doctor) => (
-                <TouchableOpacity
-                  key={doctor.id}
-                  style={styles.modalItem}
-                  onPress={() => {
-                    setSelectedDoctor(doctor);
-                    setShowDoctorModal(false);
-                  }}
-                >
-                  <Text style={styles.modalItemText}>{doctor.name}</Text>
-                  {doctor.specialization && (
-                    <Text style={styles.modalItemSubtext}>{doctor.specialization}</Text>
-                  )}
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-        </TouchableOpacity>
-      </Modal>
-
-      {/* Time Slot Modal */}
-      <Modal
-        visible={showTimeSlotModal}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowTimeSlotModal(false)}
-      >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setShowTimeSlotModal(false)}
-        >
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Select Time Slot</Text>
-            <ScrollView style={styles.modalList}>
-              {timeSlots.map((slot) => (
-                <TouchableOpacity
-                  key={slot}
-                  style={styles.modalItem}
-                  onPress={() => {
-                    setTimeSlot(slot);
-                    setShowTimeSlotModal(false);
-                  }}
-                >
-                  <Text style={styles.modalItemText}>{slot}</Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-        </TouchableOpacity>
-      </Modal>
-
-      {/* Custom Date Picker Modal */}
-      <Modal
-        visible={showDatePicker}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowDatePicker(false)}
-      >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setShowDatePicker(false)}
-        >
-          <View style={[styles.modalContent, styles.datePickerModal]} onStartShouldSetResponder={() => true}>
-            <View style={styles.datePickerHeader}>
-              <TouchableOpacity onPress={() => navigateMonth(-1)} style={styles.monthNav}>
-                <Text style={styles.monthNavText}>‹</Text>
-              </TouchableOpacity>
-              <Text style={styles.modalTitle}>
-                {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-              </Text>
-              <TouchableOpacity onPress={() => navigateMonth(1)} style={styles.monthNav}>
-                <Text style={styles.monthNavText}>›</Text>
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.calendarContainer}>
-              <View style={styles.weekDaysRow}>
-                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-                  <Text key={day} style={styles.weekDayText}>{day}</Text>
-                ))}
-              </View>
-
-              <View style={styles.datesGrid}>
-                {generateCalendarDates().map((dateObj, index) => {
-                  if (!dateObj) {
-                    return <View key={`empty-${index}`} style={styles.dateCell} />;
-                  }
-
-                  const isAvailable = isDayAvailable(dateObj);
-                  const isToday = dateObj.toDateString() === new Date().toDateString();
-                  const isPast = dateObj < new Date(new Date().setHours(0, 0, 0, 0));
-                  const isSelected = date === formatDate(dateObj);
-
-                  return (
-                    <TouchableOpacity
-                      key={index}
-                      style={[
-                        styles.dateCell,
-                        isAvailable && !isPast && styles.dateCellAvailable,
-                        isSelected && styles.dateCellSelected,
-                        (!isAvailable || isPast) && styles.dateCellDisabled,
-                      ]}
-                      onPress={() => {
-                        if (isAvailable && !isPast) {
-                          setDate(formatDate(dateObj));
-                          setShowDatePicker(false);
-                        }
-                      }}
-                      disabled={!isAvailable || isPast}
-                    >
-                      <Text
-                        style={[
-                          styles.dateText,
-                          isAvailable && !isPast && styles.dateTextAvailable,
-                          isSelected && styles.dateTextSelected,
-                          (!isAvailable || isPast) && styles.dateTextDisabled,
-                          isToday && styles.dateTextToday,
-                        ]}
-                      >
-                        {dateObj.getDate()}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            </View>
-
-            {selectedDoctor && (
-              <View style={styles.availabilityNote}>
-                <Text style={styles.availabilityText}>
-                  ✓ Available on: {getDoctorAvailableDays().join(', ')}
-                </Text>
-              </View>
-            )}
-          </View>
-        </TouchableOpacity>
-      </Modal>
-
-      {/* Payment Modal */}
-      <Modal
-        visible={showPaymentModal}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowPaymentModal(false)}
-      >
-        <View style={styles.paymentOverlay}>
-          <View style={styles.paymentModal}>
-            <Text style={styles.paymentTitle}>Choose Payment Method</Text>
-            
-            <Text style={styles.paymentAmount}>
-              Amount: ₹{selectedDoctor?.fee || 0}
-            </Text>
-
-            <TouchableOpacity
-              style={styles.walletButton}
-              onPress={() => handlePayment('wallet')}
-            >
-              <Text style={styles.walletButtonText}>Pay from Wallet</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.razorpayButton}
-              onPress={() => handlePayment('razorpay')}
-            >
-              <Text style={styles.razorpayButtonText}>Pay with Razorpay</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={() => setShowPaymentModal(false)}
-            >
-              <Text style={styles.closeButtonText}>Close</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Razorpay WebView Modal - Only for Mobile */}
-      {Platform.OS !== 'web' && showRazorpayWebView && (
-        <Modal
-          visible={true}
-          animationType="slide"
-          presentationStyle="fullScreen"
-          onRequestClose={() => {
-            console.log('Modal onRequestClose called');
-            setShowRazorpayWebView(false);
-          }}
-        >
-          <View style={styles.webViewContainer}>
-            <View style={styles.webViewHeader}>
-              <Text style={styles.webViewTitle}>Complete Payment (Order: {razorpayOrderId.substring(0, 15)}...)</Text>
+          {/* Appointment Type */}
+          <View style={styles.inputWrapper}>
+            <Text style={styles.label}>Appointment Type *</Text>
+            <View style={styles.radioContainer}>
               <TouchableOpacity
-                onPress={() => {
-                  console.log('Close button pressed');
-                  Alert.alert(
-                    'Cancel Payment',
-                    'Are you sure you want to cancel this payment?',
-                    [
-                      { text: 'No', style: 'cancel' },
-                      { 
-                        text: 'Yes', 
-                        onPress: () => {
-                          console.log('Closing Razorpay modal');
-                          setShowRazorpayWebView(false);
-                        },
-                        style: 'destructive'
-                      }
-                    ]
-                  );
-                }}
-                style={styles.webViewCloseButton}
+                style={styles.radioButton}
+                onPress={() => setAppointmentType('physical')}
+                disabled={loading}
               >
-                <Text style={styles.webViewCloseText}>✕</Text>
+                <View style={styles.radioCircle}>
+                  {appointmentType === 'physical' && <View style={styles.radioSelected} />}
+                </View>
+                <Text style={styles.radioLabel}>🏥 Physical Consultation</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.radioButton}
+                onPress={() => setAppointmentType('virtual')}
+                disabled={loading}
+              >
+                <View style={styles.radioCircle}>
+                  {appointmentType === 'virtual' && <View style={styles.radioSelected} />}
+                </View>
+                <Text style={styles.radioLabel}>💻 Virtual Consultation</Text>
               </TouchableOpacity>
             </View>
-            {razorpayOrderId ? (
-              <WebView
-                ref={webViewRef}
-                source={{ html: getRazorpayHTML() }}
-                onMessage={handleRazorpayMessage}
-                javaScriptEnabled={true}
-                domStorageEnabled={true}
-                startInLoadingState={true}
-                renderLoading={() => (
-                  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
-                    <ActivityIndicator size="large" color="#0094b8" />
-                    <Text style={{ marginTop: 10, fontSize: 16, color: '#666' }}>Loading payment...</Text>
-                  </View>
-                )}
-                scalesPageToFit={true}
-                mixedContentMode="always"
-                allowsInlineMediaPlayback={true}
-                mediaPlaybackRequiresUserAction={false}
-                thirdPartyCookiesEnabled={true}
-                sharedCookiesEnabled={true}
-                cacheEnabled={false}
-                incognito={false}
-                onContentProcessDidTerminate={() => {
-                  console.log('WebView terminated, reloading...');
-                  webViewRef.current?.reload();
-                }}
-                onShouldStartLoadWithRequest={(request) => {
-                  console.log('WebView loading:', request.url);
-                  return true;
-                }}
-                onLoadStart={(syntheticEvent) => {
-                  console.log('WebView load started');
-                }}
-                onLoadEnd={() => {
-                  console.log('WebView loaded successfully');
-                }}
-                onError={(syntheticEvent) => {
-                  const { nativeEvent } = syntheticEvent;
-                  console.error('WebView error:', nativeEvent);
-                  Alert.alert('Error', 'Failed to load payment page. Please try again.');
-                  setShowRazorpayWebView(false);
-                }}
-                onHttpError={(syntheticEvent) => {
-                  const { nativeEvent } = syntheticEvent;
-                  console.error('WebView HTTP error:', nativeEvent);
-                }}
-                originWhitelist={['*']}
-                style={styles.webView}
-              />
-            ) : (
-              <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
-                <ActivityIndicator size="large" color="#0094b8" />
-                <Text style={{ marginTop: 10, fontSize: 16, color: '#666' }}>Initializing...</Text>
+            <Text style={styles.helpText}>
+              {appointmentType === 'physical'
+                ? "In-person appointment at the doctor's clinic"
+                : 'Online video consultation with the doctor'}
+            </Text>
+          </View>
+
+          {/* Select Doctor */}
+          <View style={styles.inputWrapper}>
+            <Text style={styles.label}>Select Doctor *</Text>
+            <TouchableOpacity
+              style={styles.dropdownButton}
+              onPress={() => location ? setShowDoctorModal(true) : null}
+              disabled={loading || !location}
+            >
+              <Text style={[styles.dropdownText, !selectedDoctor && styles.placeholder]}>
+                {selectedDoctor ? selectedDoctor.name : (location ? 'Select a doctor' : 'Please select a location first')}
+              </Text>
+              <Text style={styles.dropdownIcon}>▼</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Date & Time Slot Row */}
+          <View style={styles.row}>
+            <View style={[styles.inputWrapper, styles.halfWidth]}>
+              <Text style={styles.label}>Date *</Text>
+              <TouchableOpacity
+                style={styles.dropdownButton}
+                onPress={() => selectedDoctor ? setShowDatePicker(true) : null}
+                disabled={loading || !selectedDoctor}
+              >
+                <Text style={[styles.dropdownText, !date && styles.placeholder]}>
+                  {date ? new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : (selectedDoctor ? 'Select date' : 'Select doctor first')}
+                </Text>
+                <Text style={styles.dropdownIcon}>📅</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={[styles.inputWrapper, styles.halfWidth]}>
+              <Text style={styles.label}>Time Slot *</Text>
+              <TouchableOpacity
+                style={styles.dropdownButton}
+                onPress={() => setShowTimeSlotModal(true)}
+                disabled={loading}
+              >
+                <Text style={[styles.dropdownText, !timeSlot && styles.placeholder]}>
+                  {timeSlot || 'Select Time Slot'}
+                </Text>
+                <Text style={styles.dropdownIcon}>▼</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Notes */}
+          <View style={styles.inputWrapper}>
+            <Text style={styles.label}>Notes</Text>
+            <TextInput
+              style={[styles.input, styles.textArea]}
+              placeholder="Additional notes..."
+              placeholderTextColor="#999"
+              value={notes}
+              onChangeText={setNotes}
+              multiline
+              numberOfLines={4}
+              editable={!loading}
+            />
+          </View>
+
+          {/* Submit & Cancel Buttons */}
+          <View style={styles.buttonRow}>
+            <TouchableOpacity
+              style={[styles.submitButton, loading && styles.submitButtonDisabled]}
+              onPress={handleSubmit}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.submitButtonText}>Submit</Text>
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={() => navigation.goBack()}
+              disabled={loading}
+            >
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Location Modal */}
+        <Modal
+          visible={showLocationModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowLocationModal(false)}
+        >
+          <TouchableOpacity
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPress={() => setShowLocationModal(false)}
+          >
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Select Location</Text>
+              <ScrollView style={styles.modalList}>
+                {locations.map((loc) => (
+                  <TouchableOpacity
+                    key={loc}
+                    style={styles.modalItem}
+                    onPress={() => {
+                      setLocation(loc);
+                      setShowLocationModal(false);
+                    }}
+                  >
+                    <Text style={styles.modalItemText}>{loc}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          </TouchableOpacity>
+        </Modal>
+
+        {/* Doctor Modal */}
+        <Modal
+          visible={showDoctorModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowDoctorModal(false)}
+        >
+          <TouchableOpacity
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPress={() => setShowDoctorModal(false)}
+          >
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Select Doctor</Text>
+              <ScrollView style={styles.modalList}>
+                {doctors.map((doctor) => (
+                  <TouchableOpacity
+                    key={doctor.id}
+                    style={styles.modalItem}
+                    onPress={() => {
+                      setSelectedDoctor(doctor);
+                      setShowDoctorModal(false);
+                    }}
+                  >
+                    <Text style={styles.modalItemText}>{doctor.name}</Text>
+                    {doctor.specialization && (
+                      <Text style={styles.modalItemSubtext}>{doctor.specialization}</Text>
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          </TouchableOpacity>
+        </Modal>
+
+        {/* Time Slot Modal */}
+        <Modal
+          visible={showTimeSlotModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowTimeSlotModal(false)}
+        >
+          <TouchableOpacity
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPress={() => setShowTimeSlotModal(false)}
+          >
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Select Time Slot</Text>
+              <ScrollView style={styles.modalList}>
+                {timeSlots.map((slot) => (
+                  <TouchableOpacity
+                    key={slot}
+                    style={styles.modalItem}
+                    onPress={() => {
+                      setTimeSlot(slot);
+                      setShowTimeSlotModal(false);
+                    }}
+                  >
+                    <Text style={styles.modalItemText}>{slot}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          </TouchableOpacity>
+        </Modal>
+
+        {/* Custom Date Picker Modal */}
+        <Modal
+          visible={showDatePicker}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowDatePicker(false)}
+        >
+          <TouchableOpacity
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPress={() => setShowDatePicker(false)}
+          >
+            <View style={[styles.modalContent, styles.datePickerModal]} onStartShouldSetResponder={() => true}>
+              <View style={styles.datePickerHeader}>
+                <TouchableOpacity onPress={() => navigateMonth(-1)} style={styles.monthNav}>
+                  <Text style={styles.monthNavText}>‹</Text>
+                </TouchableOpacity>
+                <Text style={styles.modalTitle}>
+                  {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                </Text>
+                <TouchableOpacity onPress={() => navigateMonth(1)} style={styles.monthNav}>
+                  <Text style={styles.monthNavText}>›</Text>
+                </TouchableOpacity>
               </View>
-            )}
+
+              <View style={styles.calendarContainer}>
+                <View style={styles.weekDaysRow}>
+                  {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+                    <Text key={day} style={styles.weekDayText}>{day}</Text>
+                  ))}
+                </View>
+
+                <View style={styles.datesGrid}>
+                  {generateCalendarDates().map((dateObj, index) => {
+                    if (!dateObj) {
+                      return <View key={`empty-${index}`} style={styles.dateCell} />;
+                    }
+
+                    const isAvailable = isDayAvailable(dateObj);
+                    const isToday = dateObj.toDateString() === new Date().toDateString();
+                    const isPast = dateObj < new Date(new Date().setHours(0, 0, 0, 0));
+                    const isSelected = date === formatDate(dateObj);
+
+                    return (
+                      <TouchableOpacity
+                        key={index}
+                        style={[
+                          styles.dateCell,
+                          isAvailable && !isPast && styles.dateCellAvailable,
+                          isSelected && styles.dateCellSelected,
+                          (!isAvailable || isPast) && styles.dateCellDisabled,
+                        ]}
+                        onPress={() => {
+                          if (isAvailable && !isPast) {
+                            setDate(formatDate(dateObj));
+                            setShowDatePicker(false);
+                          }
+                        }}
+                        disabled={!isAvailable || isPast}
+                      >
+                        <Text
+                          style={[
+                            styles.dateText,
+                            isAvailable && !isPast && styles.dateTextAvailable,
+                            isSelected && styles.dateTextSelected,
+                            (!isAvailable || isPast) && styles.dateTextDisabled,
+                            isToday && styles.dateTextToday,
+                          ]}
+                        >
+                          {dateObj.getDate()}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+
+              {selectedDoctor && (
+                <View style={styles.availabilityNote}>
+                  <Text style={styles.availabilityText}>
+                    ✓ Available on: {getDoctorAvailableDays().join(', ')}
+                  </Text>
+                </View>
+              )}
+            </View>
+          </TouchableOpacity>
+        </Modal>
+
+        {/* Payment Modal */}
+        <Modal
+          visible={showPaymentModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowPaymentModal(false)}
+        >
+          <View style={styles.paymentOverlay}>
+            <View style={styles.paymentModal}>
+              <Text style={styles.paymentTitle}>Choose Payment Method</Text>
+
+              <Text style={styles.paymentAmount}>
+                Amount: ₹{selectedDoctor?.fee || 0}
+              </Text>
+
+              <TouchableOpacity
+                style={styles.walletButton}
+                onPress={() => handlePayment('wallet')}
+              >
+                <Text style={styles.walletButtonText}>Pay from Wallet</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.razorpayButton}
+                onPress={() => handlePayment('razorpay')}
+              >
+                <Text style={styles.razorpayButtonText}>Pay with Razorpay</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={() => setShowPaymentModal(false)}
+              >
+                <Text style={styles.closeButtonText}>Close</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </Modal>
-      )}
-    </ScrollView>
+
+        {/* Razorpay WebView Modal - Only for Mobile */}
+        {Platform.OS !== 'web' && showRazorpayWebView && (
+          <Modal
+            visible={true}
+            animationType="slide"
+            presentationStyle="fullScreen"
+            onRequestClose={() => {
+              console.log('Modal onRequestClose called');
+              setShowRazorpayWebView(false);
+            }}
+          >
+            <View style={styles.webViewContainer}>
+              <View style={styles.webViewHeader}>
+                <Text style={styles.webViewTitle}>Complete Payment (Order: {razorpayOrderId.substring(0, 15)}...)</Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    console.log('Close button pressed');
+                    Alert.alert(
+                      'Cancel Payment',
+                      'Are you sure you want to cancel this payment?',
+                      [
+                        { text: 'No', style: 'cancel' },
+                        {
+                          text: 'Yes',
+                          onPress: () => {
+                            console.log('Closing Razorpay modal');
+                            setShowRazorpayWebView(false);
+                          },
+                          style: 'destructive'
+                        }
+                      ]
+                    );
+                  }}
+                  style={styles.webViewCloseButton}
+                >
+                  <Text style={styles.webViewCloseText}>✕</Text>
+                </TouchableOpacity>
+              </View>
+              {razorpayOrderId ? (
+                <WebView
+                  ref={webViewRef}
+                  source={{ html: getRazorpayHTML() }}
+                  onMessage={handleRazorpayMessage}
+                  javaScriptEnabled={true}
+                  domStorageEnabled={true}
+                  startInLoadingState={true}
+                  renderLoading={() => (
+                    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
+                      <ActivityIndicator size="large" color="#0094b8" />
+                      <Text style={{ marginTop: 10, fontSize: 16, color: '#666' }}>Loading payment...</Text>
+                    </View>
+                  )}
+                  scalesPageToFit={true}
+                  mixedContentMode="always"
+                  allowsInlineMediaPlayback={true}
+                  mediaPlaybackRequiresUserAction={false}
+                  thirdPartyCookiesEnabled={true}
+                  sharedCookiesEnabled={true}
+                  cacheEnabled={false}
+                  incognito={false}
+                  onContentProcessDidTerminate={() => {
+                    console.log('WebView terminated, reloading...');
+                    webViewRef.current?.reload();
+                  }}
+                  onShouldStartLoadWithRequest={(request) => {
+                    console.log('WebView loading:', request.url);
+                    return true;
+                  }}
+                  onLoadStart={(syntheticEvent) => {
+                    console.log('WebView load started');
+                  }}
+                  onLoadEnd={() => {
+                    console.log('WebView loaded successfully');
+                  }}
+                  onError={(syntheticEvent) => {
+                    const { nativeEvent } = syntheticEvent;
+                    console.error('WebView error:', nativeEvent);
+                    Alert.alert('Error', 'Failed to load payment page. Please try again.');
+                    setShowRazorpayWebView(false);
+                  }}
+                  onHttpError={(syntheticEvent) => {
+                    const { nativeEvent } = syntheticEvent;
+                    console.error('WebView HTTP error:', nativeEvent);
+                  }}
+                  originWhitelist={['*']}
+                  style={styles.webView}
+                />
+              ) : (
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
+                  <ActivityIndicator size="large" color="#0094b8" />
+                  <Text style={{ marginTop: 10, fontSize: 16, color: '#666' }}>Initializing...</Text>
+                </View>
+              )}
+            </View>
+          </Modal>
+        )}
+      </ScrollView>
     </View>
   );
 }

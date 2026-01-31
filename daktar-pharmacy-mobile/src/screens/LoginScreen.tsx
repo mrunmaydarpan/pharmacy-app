@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   ScrollView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAppDispatch } from '../hooks/useAppDispatch';
 import { setUser, setError } from '../store/authSlice';
@@ -65,111 +66,117 @@ export default function LoginScreen({ navigation }: any) {
   };
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.welcome}>Welcome</Text>
-        <Text style={styles.subtitle}>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-        </Text>
-      </View>
-
-      {/* Sign In Section */}
-      <View style={styles.formContainer}>
-        <Text style={styles.sectionTitle}>Sign In</Text>
-
-        {/* Email Input */}
-        <View style={styles.inputWrapper}>
-          <Text style={styles.label}>Email</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter Your Email"
-            placeholderTextColor="#999999"
-            value={email}
-            onChangeText={setEmail}
-            editable={!loading}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.welcome}>Welcome</Text>
+          <Text style={styles.subtitle}>
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+          </Text>
         </View>
 
-        {/* Password Input */}
-        <View style={styles.inputWrapper}>
-          <Text style={styles.label}>Password</Text>
-          <View style={styles.passwordInputContainer}>
+        {/* Sign In Section */}
+        <View style={styles.formContainer}>
+          <Text style={styles.sectionTitle}>Sign In</Text>
+
+          {/* Email Input */}
+          <View style={styles.inputWrapper}>
+            <Text style={styles.label}>Email</Text>
             <TextInput
-              style={styles.passwordInput}
-              placeholder="Enter Your Password"
+              style={styles.input}
+              placeholder="Enter Your Email"
               placeholderTextColor="#999999"
-              value={password}
-              onChangeText={setPassword}
+              value={email}
+              onChangeText={setEmail}
               editable={!loading}
-              secureTextEntry={!showPassword}
+              keyboardType="email-address"
+              autoCapitalize="none"
             />
-            <TouchableOpacity
-              onPress={() => setShowPassword(!showPassword)}
-              style={styles.eyeIcon}
-            >
-              <Text style={styles.eyeIconText}>{showPassword ? '👁️' : '👁️‍🗨️'}</Text>
+          </View>
+
+          {/* Password Input */}
+          <View style={styles.inputWrapper}>
+            <Text style={styles.label}>Password</Text>
+            <View style={styles.passwordInputContainer}>
+              <TextInput
+                style={styles.passwordInput}
+                placeholder="Enter Your Password"
+                placeholderTextColor="#999999"
+                value={password}
+                onChangeText={setPassword}
+                editable={!loading}
+                secureTextEntry={!showPassword}
+              />
+              <TouchableOpacity
+                onPress={() => setShowPassword(!showPassword)}
+                style={styles.eyeIcon}
+              >
+                <Text style={styles.eyeIconText}>{showPassword ? '👁️' : '👁️‍🗨️'}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Forgot Password Link */}
+          <TouchableOpacity style={styles.forgotPasswordContainer}>
+            <Text style={styles.forgotPassword}>Forgot Password</Text>
+          </TouchableOpacity>
+
+          {/* Sign In Button */}
+          <TouchableOpacity
+            style={[styles.signInButton, loading && styles.signInButtonDisabled]}
+            onPress={handleLogin}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#ffffff" />
+            ) : (
+              <Text style={styles.signInButtonText}>Sign In</Text>
+            )}
+          </TouchableOpacity>
+
+          {/* Divider */}
+          <View style={styles.dividerContainer}>
+            <View style={styles.divider} />
+            <Text style={styles.dividerText}>OR</Text>
+            <View style={styles.divider} />
+          </View>
+
+          {/* Social Login Buttons */}
+          <View style={styles.socialContainer}>
+            <TouchableOpacity style={styles.socialButton}>
+              <Text style={styles.socialIcon}>f</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.socialButton}>
+              <Text style={styles.socialIcon}>G</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Sign Up Link */}
+          <View style={styles.signUpContainer}>
+            <Text style={styles.signUpText}>Don't have an account? </Text>
+            <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
+              <Text style={styles.signUpLink}>Sign Up</Text>
             </TouchableOpacity>
           </View>
         </View>
-
-        {/* Forgot Password Link */}
-        <TouchableOpacity style={styles.forgotPasswordContainer}>
-          <Text style={styles.forgotPassword}>Forgot Password</Text>
-        </TouchableOpacity>
-
-        {/* Sign In Button */}
-        <TouchableOpacity
-          style={[styles.signInButton, loading && styles.signInButtonDisabled]}
-          onPress={handleLogin}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="#ffffff" />
-          ) : (
-            <Text style={styles.signInButtonText}>Sign In</Text>
-          )}
-        </TouchableOpacity>
-
-        {/* Divider */}
-        <View style={styles.dividerContainer}>
-          <View style={styles.divider} />
-          <Text style={styles.dividerText}>OR</Text>
-          <View style={styles.divider} />
-        </View>
-
-        {/* Social Login Buttons */}
-        <View style={styles.socialContainer}>
-          <TouchableOpacity style={styles.socialButton}>
-            <Text style={styles.socialIcon}>f</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.socialButton}>
-            <Text style={styles.socialIcon}>G</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Sign Up Link */}
-        <View style={styles.signUpContainer}>
-          <Text style={styles.signUpText}>Don't have an account? </Text>
-          <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
-            <Text style={styles.signUpLink}>Sign Up</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+  },
   container: {
     flex: 1,
     backgroundColor: '#ffffff',
   },
   header: {
     paddingHorizontal: 20,
-    paddingTop: 40,
+    paddingTop: 20,
     paddingBottom: 30,
     alignItems: 'center',
   },
