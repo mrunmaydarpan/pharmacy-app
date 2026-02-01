@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Dimensions, SafeAreaView } from 'react-native';
-
+import { View, Text, StyleSheet, Image, TouchableOpacity, Dimensions } from 'react-native';
 const { width, height } = Dimensions.get('window');
 
 export default function WelcomeScreen({ navigation }: any) {
@@ -12,10 +11,10 @@ export default function WelcomeScreen({ navigation }: any) {
     }, 3000);
     return () => clearTimeout(timer);
   }, [navigation]);
+  console.log("[screen] WelcomeScreen");
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
+    <View style={styles.container}>
       {/* Logo */}
       <View style={styles.logoContainer}>
         <Image
@@ -44,15 +43,10 @@ export default function WelcomeScreen({ navigation }: any) {
         </TouchableOpacity>
       </View>
     </View>
-    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#ffffff',
-  },
   container: {
     flex: 1,
     justifyContent: 'space-between',

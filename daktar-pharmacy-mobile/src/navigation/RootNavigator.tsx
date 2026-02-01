@@ -89,19 +89,19 @@ function AppTabs() {
         headerShown: false,
         tabBarActiveTintColor: '#0094b8',
         tabBarInactiveTintColor: '#999999',
-        tabBarStyle: { 
-          borderTopColor: '#f0f0f0',
-          borderTopWidth: 1,
-          paddingBottom: 8,
-          paddingTop: 8,
-          height: 65,
-          backgroundColor: '#ffffff',
-          elevation: 8,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: -2 },
-          shadowOpacity: 0.1,
-          shadowRadius: 4,
-        },
+        // tabBarStyle: {
+        //   borderTopColor: '#f0f0f0',
+        //   borderTopWidth: 1,
+        //   paddingBottom: 8,
+        //   paddingTop: 8,
+        //   height: 65,
+        //   backgroundColor: '#ffffff',
+        //   elevation: 8,
+        //   shadowColor: '#000',
+        //   shadowOffset: { width: 0, height: -2 },
+        //   shadowOpacity: 0.1,
+        //   shadowRadius: 4,
+        // },
         tabBarLabelStyle: {
           fontSize: 12,
           fontWeight: '500',
@@ -110,6 +110,7 @@ function AppTabs() {
         tabBarIconStyle: {
           marginTop: 4,
         },
+        tabBarHideOnKeyboard: true,
       }}
     >
       <Tab.Screen

@@ -1,17 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  TextInput,
   ScrollView,
-  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { useSelector } from 'react-redux';
 import DropDown from '../../components/DropDown';
 import apiService from '../services/apiService';
-import { useSelector } from 'react-redux';
 
 
 interface Patient {
@@ -30,6 +28,7 @@ interface NewPatient {
   name: string;
   mobile: string;
   note: string;
+  pharmacy_id: string;
 }
 
 export default function BookDiagnosticScreen({ navigation }: any) {
@@ -74,7 +73,8 @@ export default function BookDiagnosticScreen({ navigation }: any) {
   const [newPatientDetails, setNewPatientDetails] = useState<NewPatient>({
     name: '',
     mobile: '',
-    note: ''
+    note: '',
+    pharmacy_id: pharmacyId,
   });
   const [isPhoneValid, setIsPhoneValid] = useState<boolean | null>(null);
 
@@ -84,15 +84,23 @@ export default function BookDiagnosticScreen({ navigation }: any) {
     return sum + (test ? parseFloat(test.b2b_price) : 0);
   }, 0);
 
-  const patientOptions = patient.map(p => ({
-    label: `${p.name} (${p.mobile})`,
-    value: p.id,
-  }));
+  const patientOptions = Array.from(new Set(patient.map(p => p.id)))
+    .map(id => {
+      const p = patient.find(p => p.id === id);
+      return {
+        label: `${p?.name} (${p?.mobile})`,
+        value: id,
+      };
+    });
 
-  const testOptions = tests.map(t => ({
-    label: `${t.test_name} - ₹${t.b2b_price}`,
-    value: t.id
-  }));
+  const testOptions = Array.from(new Set(tests.map(t => t.id)))
+    .map(id => {
+      const t = tests.find(t => t.id === id);
+      return {
+        label: `${t?.test_name} - ₹${t?.b2b_price}`,
+        value: id
+      };
+    });
 
   const handleTestSelect = (testId: any) => {
     if (Array.isArray(testId)) {
@@ -111,17 +119,20 @@ export default function BookDiagnosticScreen({ navigation }: any) {
       name: newPatientName,
       mobile: newPatientPhone,
       note: note,
+      pharmacy_id: pharmacyId,
     });
     if (isPhoneValid) {
       console.log({
         name: newPatientName,
         mobile: newPatientPhone,
         note: note,
+        pharmacy_id: pharmacyId,
       });
       apiService.createNewPatient({
         name: newPatientName,
         mobile: newPatientPhone,
         note: note,
+        pharmacy_id: pharmacyId,
       }).then((response) => {
         console.log(response);
         alert("Patient created successfully");
@@ -148,7 +159,7 @@ export default function BookDiagnosticScreen({ navigation }: any) {
   };
 
   return (
-    <SafeAreaProvider style={styles.container}>
+    <>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* <View style={styles.card}> */}
         <View style={styles.header}>
@@ -296,7 +307,7 @@ export default function BookDiagnosticScreen({ navigation }: any) {
           </TouchableOpacity>
         </View>
       </ScrollView>
-    </SafeAreaProvider>
+    </>
   );
 }
 

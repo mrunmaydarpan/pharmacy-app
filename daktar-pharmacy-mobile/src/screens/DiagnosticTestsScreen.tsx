@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { RootState } from '../store';
-import apiService from '../services/apiService';
 import Header from '../components/Header';
+import apiService from '../services/apiService';
+import { RootState } from '../store';
 
 export default function DiagnosticTestsScreen({ navigation }: any) {
   const pharmacy = useSelector((state: RootState) => state.auth.pharmacy);
@@ -40,28 +39,30 @@ export default function DiagnosticTestsScreen({ navigation }: any) {
       const items = response.data.items || [];
 
       // Group bookings by patient
-      const patientMap = new Map();
+      const newPatients = [...(append ? patients : [])];
+
       items.forEach((item: any) => {
         const patientId = item.patient?.id;
         if (patientId) {
-          if (!patientMap.has(patientId)) {
-            patientMap.set(patientId, {
+          const existingPatientIndex = newPatients.findIndex(p => p.patient.id === patientId);
+
+          if (existingPatientIndex !== -1) {
+            // Add booking to existing patient group if not already there
+            const isDuplicate = newPatients[existingPatientIndex].bookings.some((b: any) => b.id === item.id);
+            if (!isDuplicate) {
+              newPatients[existingPatientIndex].bookings.push(item);
+            }
+          } else {
+            // Create new patient group
+            newPatients.push({
               patient: item.patient,
-              bookings: []
+              bookings: [item]
             });
           }
-          patientMap.get(patientId).bookings.push(item);
         }
       });
 
-      const groupedPatients = Array.from(patientMap.values());
-
-      if (append) {
-        setPatients(prev => [...prev, ...groupedPatients]);
-      } else {
-        setPatients(groupedPatients);
-      }
-
+      setPatients(newPatients);
       setPage(pageNum);
       setTotalPages(response.data.pagination?.totalPages || 1);
     } catch (error) {
@@ -161,7 +162,7 @@ export default function DiagnosticTestsScreen({ navigation }: any) {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <>
       <Header />
       <TouchableOpacity
         style={styles.addButton}
@@ -186,7 +187,7 @@ export default function DiagnosticTestsScreen({ navigation }: any) {
           </View>
         }
       />
-    </SafeAreaView>
+    </>
   );
 }
 

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, TextInput, Dimensions, SafeAreaView } from 'react-native';
-import apiService from '../services/apiService';
+import React, { useEffect, useState } from 'react';
+import { Dimensions, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import Header from '../components/Header';
+import apiService from '../services/apiService';
 
 const { width, height } = Dimensions.get('window');
 const isSmallDevice = width < 375;
@@ -19,7 +19,11 @@ export default function DashboardScreen({ navigation }: any) {
   const loadDoctors = async () => {
     try {
       const response = await apiService.getDoctors();
-      setDoctors(response.data.doctors || []);
+      const docs = response.data.doctors || [];
+      // Deduplicate by ID
+      const uniqueDocs = Array.from(new Set(docs.map((d: any) => d.id)))
+        .map(id => docs.find((d: any) => d.id === id));
+      setDoctors(uniqueDocs);
     } catch (error) {
       console.error('Error loading doctors:', error);
     }
@@ -28,7 +32,11 @@ export default function DashboardScreen({ navigation }: any) {
   const loadSpecialities = async () => {
     try {
       const response = await apiService.getSpecialities();
-      setSpecialities(response.data.specialities || []);
+      const specs = response.data.specialities || [];
+      // Deduplicate by ID
+      const uniqueSpecs = Array.from(new Set(specs.map((s: any) => s.id)))
+        .map(id => specs.find((s: any) => s.id === id));
+      setSpecialities(uniqueSpecs);
     } catch (error) {
       console.error('Error loading specialities:', error);
     }
@@ -42,7 +50,7 @@ export default function DashboardScreen({ navigation }: any) {
   ];
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <>
       <Header />
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         {/* Search Bar */}
@@ -168,15 +176,11 @@ export default function DashboardScreen({ navigation }: any) {
 
         <View style={{ height: 110 }} />
       </ScrollView>
-    </SafeAreaView>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
   container: {
     flex: 1,
     backgroundColor: '#fff',

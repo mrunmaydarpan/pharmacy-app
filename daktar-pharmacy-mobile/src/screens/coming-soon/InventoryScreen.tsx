@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import apiService from '../services/apiService';
+import apiService from '../../services/apiService';
 
 export default function InventoryScreen({ navigation }: any) {
   const [medicines, setMedicines] = useState([]);
@@ -49,7 +48,7 @@ export default function InventoryScreen({ navigation }: any) {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <>
       <TouchableOpacity
         style={styles.addButton}
         onPress={() => navigation.navigate('AddMedicine')}
@@ -65,7 +64,7 @@ export default function InventoryScreen({ navigation }: any) {
         onRefresh={loadMedicines}
         refreshing={loading}
       />
-    </SafeAreaView>
+    </>
   );
 }
 

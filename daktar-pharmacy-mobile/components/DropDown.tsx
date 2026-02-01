@@ -3,7 +3,8 @@ import { View, Text, StyleSheet, TouchableOpacity, Modal, FlatList, Dimensions }
 import { Dropdown, MultiSelect } from 'react-native-element-dropdown';
 import { AntDesign } from '@expo/vector-icons';
 
-interface DropDownProps {
+interface DropDownProps
+{
     label?: string;
     placeholder?: string;
     options: Array<{ label: string; value: any }>;
@@ -21,9 +22,11 @@ export default function DropDown({
     onSelect,
     disabled = false,
     multiSelect = false,
-}: DropDownProps) {
+}: DropDownProps)
+{
 
-    const renderItem = (item: any) => {
+    const renderItem = (item: any) =>
+    {
         const isSelected = multiSelect
             ? (selectedValue || []).includes(item.value)
             : selectedValue === item.value;
@@ -45,8 +48,10 @@ export default function DropDown({
         );
     };
 
-    const renderDropdown = () => {
-        if (multiSelect) {
+    const renderDropdown = () =>
+    {
+        if (multiSelect)
+        {
             return (
                 <MultiSelect
                     style={styles.dropdownButton}
@@ -59,7 +64,8 @@ export default function DropDown({
                     placeholder={placeholder}
                     searchPlaceholder="Search..."
                     value={selectedValue || []}
-                    onChange={(item) => {
+                    onChange={(item) =>
+                    {
                         onSelect(item);
                     }}
                     renderItem={renderItem}
@@ -82,7 +88,8 @@ export default function DropDown({
                 placeholder={placeholder}
                 searchPlaceholder="Search..."
                 value={selectedValue}
-                onChange={(item) => {
+                onChange={(item) =>
+                {
                     onSelect(item.value);
                 }}
                 renderItem={renderItem}

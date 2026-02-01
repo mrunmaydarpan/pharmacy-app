@@ -4,6 +4,8 @@ import apiService from '../services/apiService';
 import Header from '../components/Header';
 
 export default function WalletScreen() {
+  console.log("[screen] WalletScreen");
+
   const [balance, setBalance] = useState(0);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);

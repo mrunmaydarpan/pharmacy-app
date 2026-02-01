@@ -1,21 +1,34 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useState } from 'react';
 import {
-  View,
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
   TextInput,
   TouchableOpacity,
-  Text,
-  StyleSheet,
-  Alert,
-  ActivityIndicator,
-  ScrollView,
+  View,
+  BackHandler,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useEffect } from 'react';
+import Icon from 'react-native-vector-icons/FontAwesome';
 import { useAppDispatch } from '../hooks/useAppDispatch';
-import { setUser, setError } from '../store/authSlice';
 import apiService from '../services/apiService';
+import { setError, setUser } from '../store/authSlice';
 
 export default function LoginScreen({ navigation }: any) {
+  const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+    return true;
+  });
+
+  useEffect(() => {
+    return () => {
+      backHandler.remove();
+    };
+  }, [backHandler]);
+
+  console.log("[screen] LoginScreen");
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -23,6 +36,7 @@ export default function LoginScreen({ navigation }: any) {
   const dispatch = useAppDispatch();
 
   const handleLogin = async () => {
+
     if (!email || !password) {
       Alert.alert('Error', 'Please enter email and password');
       return;
@@ -66,7 +80,7 @@ export default function LoginScreen({ navigation }: any) {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <>
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
@@ -112,7 +126,7 @@ export default function LoginScreen({ navigation }: any) {
                 onPress={() => setShowPassword(!showPassword)}
                 style={styles.eyeIcon}
               >
-                <Text style={styles.eyeIconText}>{showPassword ? '👁️' : '👁️‍🗨️'}</Text>
+                <Text style={styles.eyeIconText}>{showPassword ? <Icon name="eye" /> : <Icon name="eye-slash" />}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -161,15 +175,11 @@ export default function LoginScreen({ navigation }: any) {
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#ffffff',
-  },
   container: {
     flex: 1,
     backgroundColor: '#ffffff',

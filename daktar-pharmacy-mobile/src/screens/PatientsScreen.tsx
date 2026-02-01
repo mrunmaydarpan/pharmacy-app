@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, TextInput, Modal } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, FlatList, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { RootState } from '../store';
-import apiService from '../services/apiService';
 import Header from '../components/Header';
+import apiService from '../services/apiService';
+import { RootState } from '../store';
 
 export default function PatientsScreen({ navigation }: any) {
   const pharmacy = useSelector((state: RootState) => state.auth.pharmacy);
@@ -43,7 +42,11 @@ export default function PatientsScreen({ navigation }: any) {
       const pagination = response.data.pagination || {};
 
       if (append) {
-        setPatients(prev => [...prev, ...patientsData]);
+        setPatients(prev => {
+          const existingIds = new Set(prev.map(p => p.id));
+          const newUniqueBookings = patientsData.filter((p: any) => !existingIds.has(p.id));
+          return [...prev, ...newUniqueBookings];
+        });
       } else {
         setPatients(patientsData);
       }
@@ -170,7 +173,7 @@ export default function PatientsScreen({ navigation }: any) {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <>
       <Header />
       {/* Search Bar */}
       <View style={styles.searchContainer}>
@@ -283,15 +286,15 @@ export default function PatientsScreen({ navigation }: any) {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
+  // container: {
+  //   flex: 1,
+  //   backgroundColor: '#f5f5f5',
+  // },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -366,9 +369,9 @@ const styles = StyleSheet.create({
     padding: 15,
   },
   avatar: {
-    width: 70,
-    height: 70,
-    borderRadius: 15,
+    width: 50,
+    height: 50,
+    borderRadius: '50%',
     backgroundColor: '#0094b8',
     justifyContent: 'center',
     alignItems: 'center',

@@ -14,6 +14,8 @@ import apiService from '../services/apiService';
 import { Patient } from '../types';
 
 export default function PatientDetailScreen({ route, navigation }: any) {
+  console.log(route.params);
+
   const { patientId } = route.params;
   const [patient, setPatient] = useState<Patient | null>(null);
   const [loading, setLoading] = useState(true);

@@ -5,6 +5,7 @@ import { store } from './src/store';
 import { useAppDispatch } from './src/hooks/useAppDispatch';
 import { setUser } from './src/store/authSlice';
 import { RootNavigator } from './src/navigation/RootNavigator';
+import { StyleSheet } from 'react-native';
 
 function AppContent() {
   const dispatch = useAppDispatch();
@@ -39,10 +40,18 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 export default function App() {
   return (
     <Provider store={store}>
-      <SafeAreaProvider>
+      <SafeAreaProvider style={styles.container}>
         <AppContent />
       </SafeAreaProvider>
     </Provider>
   );
 }
 
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#191717ff',
+    paddingBottom: 12,
+    paddingTop: 35,
+  },
+});
