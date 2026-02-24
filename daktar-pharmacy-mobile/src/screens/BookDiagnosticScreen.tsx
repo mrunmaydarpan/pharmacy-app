@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import {
+import
+{
   ScrollView,
   StyleSheet,
   Text,
@@ -7,58 +8,70 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
+import RazorpayCheckout from 'react-native-razorpay';
 import { useSelector } from 'react-redux';
-import DropDown from '../../components/DropDown';
+import DropDown from '../components/DropDown';
 import apiService from '../services/apiService';
 
-
-interface Patient {
+interface Patient
+{
   id: string;
   name: string;
   mobile: string;
 }
 
-interface Test {
+interface Test
+{
   id: number;
   test_name: string;
   b2b_price: string;
 }
 
-interface NewPatient {
+interface NewPatient
+{
   name: string;
   mobile: string;
   note: string;
   pharmacy_id: string;
 }
 
-export default function BookDiagnosticScreen({ navigation }: any) {
+export default function BookDiagnosticScreen({ navigation }: any)
+{
   const [isAddingNewPatient, setIsAddingNewPatient] = useState(false);
   const pharmacyId = useSelector((state: any) => state.auth.user?.id);
+  const pharmacy = useSelector((state: any) => state.auth.pharmacy);
+  const [loading, setLoading] = useState(false);
   const [patient, setPatient] = useState<Patient[]>([]);
   const [tests, setTests] = useState<Test[]>([]);
 
-  const loadPatients = async () => {
-    try {
+  const loadPatients = async () =>
+  {
+    try
+    {
       const response = await apiService.fetchPatients();
-      console.log(response.data.patients);
+      // console.log(response.data.patients);
       setPatient(response.data.patients);
-    } catch (error) {
+    } catch (error)
+    {
       console.error('Error loading patients:', error);
     }
   };
 
-  const loadTests = async () => {
-    try {
+  const loadTests = async () =>
+  {
+    try
+    {
       const response = await apiService.fetchTests();
-      console.log(response.data);
+      // console.log(response.data);
       setTests(response.data);
-    } catch (error) {
+    } catch (error)
+    {
       console.error('Error loading tests:', error);
     }
   };
 
-  useEffect(() => {
-    console.log("add diagnostic booking...");
+  useEffect(() =>
+  {
     loadPatients();
     loadTests();
   }, []);
@@ -70,22 +83,20 @@ export default function BookDiagnosticScreen({ navigation }: any) {
   const [note, setNote] = useState('');
   const [newPatientName, setNewPatientName] = useState('');
   const [newPatientPhone, setNewPatientPhone] = useState('');
-  const [newPatientDetails, setNewPatientDetails] = useState<NewPatient>({
-    name: '',
-    mobile: '',
-    note: '',
-    pharmacy_id: pharmacyId,
-  });
+  const [newPatientDetails, setNewPatientDetails] = useState<NewPatient>();
+
   const [isPhoneValid, setIsPhoneValid] = useState<boolean | null>(null);
 
   // Total amount
-  const totalAmount = selectedTestIds.reduce((sum, testId) => {
+  const totalAmount = selectedTestIds.reduce((sum, testId) =>
+  {
     const test = tests.find(t => t.id === testId);
     return sum + (test ? parseFloat(test.b2b_price) : 0);
   }, 0);
 
   const patientOptions = Array.from(new Set(patient.map(p => p.id)))
-    .map(id => {
+    .map(id =>
+    {
       const p = patient.find(p => p.id === id);
       return {
         label: `${p?.name} (${p?.mobile})`,
@@ -94,7 +105,8 @@ export default function BookDiagnosticScreen({ navigation }: any) {
     });
 
   const testOptions = Array.from(new Set(tests.map(t => t.id)))
-    .map(id => {
+    .map(id =>
+    {
       const t = tests.find(t => t.id === id);
       return {
         label: `${t?.test_name} - ₹${t?.b2b_price}`,
@@ -102,78 +114,177 @@ export default function BookDiagnosticScreen({ navigation }: any) {
       };
     });
 
-  const handleTestSelect = (testId: any) => {
-    if (Array.isArray(testId)) {
+  const handleTestSelect = (testId: any) =>
+  {
+    if (Array.isArray(testId))
+    {
       setSelectedTestIds(testId);
-    } else {
-      if (selectedTestIds.includes(testId)) {
+    } else
+    {
+      if (selectedTestIds.includes(testId))
+      {
         setSelectedTestIds(selectedTestIds.filter(id => id !== testId));
-      } else {
+      } else
+      {
         setSelectedTestIds([...selectedTestIds, testId]);
       }
     }
   };
 
-  const handleCreatePatient = () => {
-    setNewPatientDetails({
+  const handleCreatePatient = () =>
+  {
+    const patientData: NewPatient = {
       name: newPatientName,
       mobile: newPatientPhone,
       note: note,
       pharmacy_id: pharmacyId,
-    });
-    if (isPhoneValid) {
-      console.log({
-        name: newPatientName,
-        mobile: newPatientPhone,
-        note: note,
-        pharmacy_id: pharmacyId,
-      });
-      apiService.createNewPatient({
-        name: newPatientName,
-        mobile: newPatientPhone,
-        note: note,
-        pharmacy_id: pharmacyId,
-      }).then((response) => {
-        console.log(response);
+    };
+
+    console.log(patientData);
+
+    if (isPhoneValid)
+    {
+      apiService.createNewPatient({ newPatientDetails: patientData }).then((response) =>
+      {
+        // console.log(response);
         alert("Patient created successfully");
+        setNewPatientDetails(patientData); // Update state after successful creation
         loadPatients();
         setIsAddingNewPatient(false); //set to false when status code is 201
-      }).catch((error) => {
+      }).catch((error) =>
+      {
         console.error('Error creating patient:', error);
-        // switch (error.response.status) {
-        //   case 409:
-        //     alert(error.response.data.message);
-        //     break;
-        //   case 400:
-        //     alert(error.response.data.message);
-        //     break;
-        //   default:
-        //     alert('Something went wrong');
-        //     break;
-        // }
         alert(error.response.data.message);
       });
-    } else {
+    } else
+    {
       alert('Please enter a valid phone number');
+    }
+  };
+
+  const handleRazorpay = async () =>
+  {
+    if (!selectedPatientId)
+    {
+      alert('Please select a patient');
+      return;
+    }
+    if (selectedTestIds.length === 0)
+    {
+      alert('Please select at least one test');
+      return;
+    }
+
+    setLoading(true);
+    const options = {
+      description: 'Lab Test Booking',
+      image: 'https://daaktar.com/assets/images/logo.png',
+      currency: 'INR',
+      key: 'rzp_live_S2WtenQkjwT34g', // Real key found in AddPatientScreen.tsx
+      amount: totalAmount * 100,
+      name: 'Daaktar Pharmacy',
+      prefill: {
+        email: pharmacy?.email || '',
+        contact: pharmacy?.phone || '',
+        name: pharmacy?.name || ''
+      },
+      theme: { color: '#6366f1' }
+    };
+
+    try
+    {
+      const data = await RazorpayCheckout.open(options);
+
+      const bookingData = {
+        patient_id: selectedPatientId,
+        pharmacy_id: pharmacyId,
+        test_ids: selectedTestIds,
+        note: note,
+        amount: totalAmount,
+        payment_method: 'razorpay',
+        payment_id: data.razorpay_payment_id,
+      };
+
+      await apiService.bookDiagnosticTest(bookingData);
+      alert('Booking successful!');
+      navigation.goBack();
+    } catch (error: any)
+    {
+      // console.error('Razorpay Error:', error);
+      // code 2 is user cancelled
+      if (error.code !== 2)
+      {
+        alert('Payment failed');
+      }
+    } finally
+    {
+      setLoading(false);
+    }
+  };
+
+  const handleWalletPay = async () =>
+  {
+    if (!selectedPatientId)
+    {
+      alert('Please select a patient');
+      return;
+    }
+    if (selectedTestIds.length === 0)
+    {
+      alert('Please select at least one test');
+      return;
+    }
+
+    setLoading(true);
+    try
+    {
+      // 1. Debit wallet
+      const debitNote = `Diagnostic Booking for ${patient.find(p => p.id === selectedPatientId)?.name}`;
+      const walletResponse = await apiService.debitWallet(pharmacyId, totalAmount, debitNote);
+
+      if (!walletResponse.data.success)
+      {
+        throw new Error('Wallet debit failed');
+      }
+
+      console.log('Wallet debited, new balance:', walletResponse.data.balance);
+
+      // 2. Create booking
+      const bookingData = {
+        patient_id: selectedPatientId,
+        pharmacy_id: pharmacyId,
+        test_ids: selectedTestIds,
+        note: note,
+        amount: totalAmount,
+        payment_method: 'wallet',
+      };
+
+      await apiService.bookDiagnosticTest(bookingData);
+      alert('Booking successful!');
+      navigation.goBack();
+    } catch (error: any)
+    {
+      console.error('Wallet Payment Error:', error);
+      alert(error.response?.data?.message || 'Failed to process wallet payment');
+    } finally
+    {
+      setLoading(false);
     }
   };
 
   return (
     <>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* <View style={styles.card}> */}
         <View style={styles.header}>
           <Text style={styles.title}>Add Diagnostic Booking</Text>
-          {/* <TouchableOpacity onPress={() => navigation?.goBack()}>
-              <Text style={styles.closeIcon}>✕</Text>
-            </TouchableOpacity> */}
         </View>
 
         <View style={styles.fieldLabelContainer}>
           <Text style={styles.label}>Patient</Text>
           <TouchableOpacity
             style={styles.addNewButton}
-            onPress={() => {
+            onPress={() =>
+            {
               setIsAddingNewPatient(!isAddingNewPatient);
               setNewPatientName('');
               setNewPatientPhone('');
@@ -209,7 +320,8 @@ export default function BookDiagnosticScreen({ navigation }: any) {
                 ]}
                 placeholder="Enter phone number (10 digits)"
                 value={newPatientPhone}
-                onChangeText={(text) => {
+                onChangeText={(text) =>
+                {
                   setNewPatientPhone(text);
                   if (text.length === 0) setIsPhoneValid(null);
                   if (text.length === 10 && /^[6-9]/.test(text)) setIsPhoneValid(true);
@@ -217,12 +329,16 @@ export default function BookDiagnosticScreen({ navigation }: any) {
                 }}
                 keyboardType="phone-pad"
                 maxLength={10}
-                onBlur={() => {
-                  if (newPatientPhone.length === 10) {
+                onBlur={() =>
+                {
+                  if (newPatientPhone.length === 10)
+                  {
                     setIsPhoneValid(true);
-                  } else if (newPatientPhone.length > 0) {
+                  } else if (newPatientPhone.length > 0)
+                  {
                     setIsPhoneValid(false);
-                  } else {
+                  } else
+                  {
                     setIsPhoneValid(null);
                   }
                 }}
@@ -298,12 +414,22 @@ export default function BookDiagnosticScreen({ navigation }: any) {
             <Text style={styles.cancelText}>Cancel</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.walletButton}>
+          <TouchableOpacity
+            style={styles.walletButton}
+            onPress={handleWalletPay}
+            disabled={loading}
+          >
             <Text style={styles.buttonText}>Pay from Wallet</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.razorpayButton}>
-            <Text style={styles.buttonText}>Pay with Razorpay</Text>
+          <TouchableOpacity
+            style={[styles.razorpayButton, loading && { opacity: 0.5 }]}
+            onPress={handleRazorpay}
+            disabled={loading}
+          >
+            <Text style={styles.buttonText}>
+              {loading ? 'Processing...' : 'Pay with Razorpay'}
+            </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -333,9 +459,11 @@ const styles = StyleSheet.create({
   //   // elevation: 5,
   // },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    // flexDirection: 'row',
+    // justifyContent: 'space-between',
     alignItems: 'center',
+    alignContent: 'center',
+    // height: 50,
     marginBottom: 24,
   },
   title: {
