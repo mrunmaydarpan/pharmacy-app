@@ -1,17 +1,16 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Image,
   Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useDispatch, useSelector } from 'react-redux';
-import { logout } from '../store/authSlice';
 import { RootState } from '../store';
+import { logout } from '../store/authSlice';
 
 export default function ProfileScreen({ navigation }: any) {
   const dispatch = useDispatch();
@@ -28,13 +27,13 @@ export default function ProfileScreen({ navigation }: any) {
     try {
       console.log('Starting logout process...');
       console.log('Current auth state before logout:', isAuthenticated);
-      
+
       // Clear AsyncStorage first
       await AsyncStorage.removeItem('accessToken');
       await AsyncStorage.removeItem('user');
       await AsyncStorage.removeItem('pharmacy');
       console.log('AsyncStorage cleared');
-      
+
       // Dispatch logout action - this sets isAuthenticated to false
       dispatch(logout());
       console.log('Redux logout dispatched');
@@ -163,12 +162,12 @@ export default function ProfileScreen({ navigation }: any) {
             <View style={styles.logoutIconContainer}>
               <Text style={styles.logoutModalIcon}>🚪</Text>
             </View>
-            
+
             <Text style={styles.logoutModalTitle}>Logout</Text>
             <Text style={styles.logoutModalMessage}>
               Are you sure you want to logout?
             </Text>
-            
+
             <View style={styles.logoutButtons}>
               <TouchableOpacity
                 style={[styles.logoutButton, styles.logoutButtonCancel]}

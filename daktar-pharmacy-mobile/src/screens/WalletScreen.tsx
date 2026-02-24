@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
-import apiService from '../services/apiService';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Header from '../components/Header';
+import apiService from '../services/apiService';
 
 export default function WalletScreen() {
   console.log("[screen] WalletScreen");
@@ -58,7 +58,7 @@ export default function WalletScreen() {
   return (
     <View style={styles.container}>
       <Header />
-      <ScrollView 
+      <ScrollView
         style={styles.scrollContainer}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
@@ -75,7 +75,7 @@ export default function WalletScreen() {
 
         {/* Transactions Table */}
         <View style={styles.tableContainer}>
-            <View style={styles.tableHeader}>
+          <View style={styles.tableHeader}>
             <Text style={[styles.tableHeaderText, styles.colDate]}>Date</Text>
             <Text style={[styles.tableHeaderText, styles.colType]}>Type</Text>
             <Text style={[styles.tableHeaderText, styles.colRef]}>Ref ID</Text>

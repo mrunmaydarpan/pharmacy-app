@@ -1,15 +1,19 @@
 // Auth Types
 export interface User {
   id: number;
-  name: string;
+  name?: string;
   email: string;
-  phone: string;
-  role: string;
+  phone?: string;
+  role?: string;
+  company_name?: string;
+  photo?: string;
 }
 
 export interface Pharmacy {
   id: number;
   name: string;
+  company_name: string;
+  photo?: string;
   license_number: string;
   address: string;
   city: string;

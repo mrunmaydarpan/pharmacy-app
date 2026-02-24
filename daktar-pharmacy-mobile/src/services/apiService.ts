@@ -1,5 +1,5 @@
-import axios, { AxiosInstance } from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios, { AxiosInstance } from 'axios';
 
 const API_URL = 'https://daaktar.com'; // Update with your actual API URL
 
@@ -108,7 +108,7 @@ class ApiService {
   }
 
   async bookDiagnosticTest(data: any) {
-    return this.client.post('/diagnostic', data);
+    return this.client.post('/diagnostics/bookings', data);
   }
 
   async getDiagnosticReports(page: number = 1, limit: number = 20) {
@@ -134,7 +134,7 @@ class ApiService {
 
   async debitWallet(pharmacyId: number, amount: number, note: string) {
     return this.client.post('/pharmacy-wallet/debit', {
-      pharmacyId,
+      // pharmacyId,
       amount,
       note
     });
@@ -160,6 +160,15 @@ class ApiService {
 
   async getTopMedicines(limit: number = 10) {
     return this.client.get(`/sales/top-medicines?limit=${limit}`);
+  }
+
+  // Placeholder for missing methods found in screens
+  async getMedicines() {
+    return this.client.get('/inventory/medicines');
+  }
+
+  async getOrders() {
+    return this.client.get('/orders');
   }
 }
 

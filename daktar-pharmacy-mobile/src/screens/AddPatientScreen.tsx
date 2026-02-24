@@ -1,23 +1,21 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import {
-  View,
+  ActivityIndicator,
+  Alert,
+  Modal,
+  Platform,
+  ScrollView,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-  ActivityIndicator,
-  Alert,
-  Platform,
-  Modal,
-  Linking,
+  View
 } from 'react-native';
-import { WebView } from 'react-native-webview';
-import * as WebBrowser from 'expo-web-browser';
+import RazorpayCheckout from 'react-native-razorpay';
 import { useSelector } from 'react-redux';
-import { RootState } from '../store';
-import apiService from '../services/apiService';
 import Header from '../components/Header';
+import apiService from '../services/apiService';
+import { RootState } from '../store';
 
 const RAZORPAY_KEY_ID = 'rzp_live_S2WtenQkjwT34g';
 
@@ -39,9 +37,7 @@ export default function AddPatientScreen({ navigation }: any) {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [showRazorpayWebView, setShowRazorpayWebView] = useState(false);
-  const [razorpayOrderId, setRazorpayOrderId] = useState('');
-  const webViewRef = useRef<WebView>(null);
+
 
   const locations = ['Bhubaneswar', 'Cuttack', 'Puri', 'Rourkela', 'Sambalpur'];
   const timeSlots = ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00'];
@@ -193,14 +189,59 @@ export default function AddPatientScreen({ navigation }: any) {
         return;
       }
 
-      // For mobile platforms - open Razorpay in WebView
-      console.log('Opening Razorpay WebView...');
-      const orderId = `order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      console.log('Generated order ID:', orderId);
-      setRazorpayOrderId(orderId);
-      console.log('Setting showRazorpayWebView to true');
-      setShowRazorpayWebView(true);
-      console.log('showRazorpayWebView should now be true');
+      // For mobile platforms - use Native Razorpay
+      console.log('Opening Native Razorpay...');
+
+      const options = {
+        description: `Appointment booking for ${name}`,
+        image: 'https://daaktar.com/assets/images/logo.png',
+        currency: 'INR',
+        key: RAZORPAY_KEY_ID,
+        amount: Math.round(amount * 100),
+        name: 'Daaktar Pharmacy',
+        prefill: {
+          email: pharmacy?.email || '',
+          contact: phone || '',
+          name: name || ''
+        },
+        theme: { color: '#0094b8' }
+      };
+
+      try {
+        const data = await RazorpayCheckout.open(options);
+        console.log('Razorpay payment successful:', data);
+
+        // Payment successful - create booking
+        setLoading(true);
+
+        const bookingData = {
+          name,
+          mobile: phone,
+          doctor_id: selectedDoctor.id,
+          pharmacy_id: pharmacyId,
+          date,
+          slot: timeSlot,
+          appointment_type: appointmentType,
+          notes: notes || undefined,
+          price: amount,
+          payment_id: data.razorpay_payment_id,
+          payment_method: 'razorpay',
+        };
+
+        const bookingResponse = await apiService.addBooking(bookingData);
+        console.log('Booking created:', bookingResponse.data);
+
+        Alert.alert('Success', 'Payment successful! Appointment booked.');
+        navigation.goBack();
+      } catch (error: any) {
+        console.error('Razorpay Error:', error);
+        // code 2 is user cancelled
+        if (error.code !== 2) {
+          Alert.alert('Payment Failed', error.description || 'Payment could not be processed');
+        }
+      } finally {
+        setLoading(false);
+      }
       return;
     }
 
@@ -257,356 +298,8 @@ export default function AddPatientScreen({ navigation }: any) {
     }
   };
 
-  const handleRazorpayMessage = async (event: any) => {
-    try {
-      console.log('Raw message from WebView:', event.nativeEvent.data);
-      const data = JSON.parse(event.nativeEvent.data);
-      console.log('Parsed Razorpay message:', data);
-
-      setShowRazorpayWebView(false);
-
-      if (data.status === 'success') {
-        // Payment successful - create booking
-        setLoading(true);
-
-        try {
-          const pharmacyId = pharmacy?.id;
-          const amount = selectedDoctor.fee || 0;
-
-          const bookingData = {
-            name,
-            mobile: phone,
-            doctor_id: selectedDoctor.id,
-            pharmacy_id: pharmacyId,
-            date,
-            slot: timeSlot,
-            appointment_type: appointmentType,
-            notes: notes || undefined,
-            price: amount,
-            payment_id: data.payment_id,
-            payment_method: 'razorpay',
-          };
-
-          console.log('Creating booking with data:', bookingData);
-          const bookingResponse = await apiService.addBooking(bookingData);
-          console.log('Booking created:', bookingResponse.data);
-
-          Alert.alert('Success', 'Payment successful! Appointment booked.');
-          navigation.goBack();
-        } catch (error: any) {
-          console.error('Error booking appointment:', error);
-          Alert.alert('Error', 'Payment successful but booking failed. Please contact support.');
-        } finally {
-          setLoading(false);
-        }
-      } else if (data.status === 'failed') {
-        Alert.alert('Payment Failed', data.error?.description || 'Payment could not be processed');
-      } else if (data.status === 'cancelled') {
-        console.log('Payment cancelled by user');
-      }
-    } catch (error) {
-      console.error('Error parsing Razorpay message:', error);
-      setShowRazorpayWebView(false);
-    }
-  };
-
-  const getRazorpayHTML = () => {
-    const amount = selectedDoctor?.fee || 0;
-    const amountInPaise = Math.round(amount * 100);
-
-    return `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Payment</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-    }
-    html, body {
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    }
-    body {
-      background: #f5f5f5;
-      display: flex;
-      flex-direction: column;
-    }
-    .header {
-      background: #0094b8;
-      color: white;
-      padding: 20px;
-      text-align: center;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    .header h1 {
-      font-size: 20px;
-      font-weight: 600;
-      margin-bottom: 5px;
-    }
-    .header p {
-      font-size: 14px;
-      opacity: 0.9;
-    }
-    .content {
-      flex: 1;
-      padding: 20px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
-    .payment-card {
-      background: white;
-      border-radius: 12px;
-      padding: 30px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      max-width: 400px;
-      width: 100%;
-    }
-    .amount-display {
-      text-align: center;
-      margin-bottom: 30px;
-    }
-    .amount-label {
-      font-size: 14px;
-      color: #666;
-      margin-bottom: 8px;
-    }
-    .amount-value {
-      font-size: 36px;
-      font-weight: bold;
-      color: #0094b8;
-    }
-    .pay-button {
-      width: 100%;
-      background: #0094b8;
-      color: white;
-      border: none;
-      padding: 16px;
-      border-radius: 8px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s;
-      -webkit-appearance: none;
-      touch-action: manipulation;
-    }
-    .pay-button:active {
-      transform: scale(0.98);
-      background: #007a9a;
-    }
-    .pay-button:disabled {
-      background: #ccc;
-      cursor: not-allowed;
-    }
-    .loading {
-      display: none;
-      text-align: center;
-      margin-top: 20px;
-    }
-    .loading.active {
-      display: block;
-    }
-    .spinner {
-      border: 3px solid #f3f3f3;
-      border-top: 3px solid #0094b8;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      animation: spin 1s linear infinite;
-      margin: 0 auto 10px;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    .info {
-      margin-top: 20px;
-      padding: 15px;
-      background: #e3f2fd;
-      border-radius: 8px;
-      font-size: 13px;
-      color: #1976d2;
-      text-align: center;
-    }
-    #razorpay-form {
-      width: 100%;
-    }
-  </style>
-</head>
-<body>
-  <div class="header">
-    <h1>Daaktar Pharmacy</h1>
-    <p>Complete Your Payment</p>
-  </div>
-  
-  <div class="content">
-    <div class="payment-card">
-      <div class="amount-display">
-        <div class="amount-label">Amount to Pay</div>
-        <div class="amount-value">₹${amount}</div>
-      </div>
-      
-      <form id="razorpay-form">
-        <button type="button" id="pay-button" class="pay-button" onclick="initiatePayment()">
-          Pay Now with Razorpay
-        </button>
-      </form>
-      
-      <div class="loading" id="loading">
-        <div class="spinner"></div>
-        <p>Processing payment...</p>
-      </div>
-      
-      <div class="info">
-        Secure payment powered by Razorpay
-      </div>
-    </div>
-  </div>
-  
-  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-  <script>
-    console.log('Payment page loaded');
-    console.log('Razorpay object available:', typeof Razorpay !== 'undefined');
-    console.log('ReactNativeWebView available:', typeof window.ReactNativeWebView !== 'undefined');
-    
-    let paymentProcessing = false;
-    
-    function postMessage(data) {
-      console.log('Attempting to post message:', data);
-      try {
-        if (window.ReactNativeWebView) {
-          window.ReactNativeWebView.postMessage(JSON.stringify(data));
-          console.log('Message posted successfully');
-        } else {
-          console.error('ReactNativeWebView not available');
-        }
-      } catch (e) {
-        console.error('Error posting message:', e);
-      }
-    }
-    
-    function initiatePayment() {
-      console.log('initiatePayment called');
-      
-      if (paymentProcessing) {
-        console.log('Payment already in progress');
-        return;
-      }
-      
-      paymentProcessing = true;
-      document.getElementById('pay-button').disabled = true;
-      document.getElementById('loading').classList.add('active');
-      
-      console.log('Starting Razorpay initialization...');
-      
-      const options = {
-        key: '${RAZORPAY_KEY_ID}',
-        amount: ${amountInPaise},
-        currency: 'INR',
-        name: 'Daaktar Pharmacy',
-        description: 'Appointment booking for ${name.replace(/'/g, "\\'")}',
-        prefill: {
-          name: '${name.replace(/'/g, "\\'")}',
-          contact: '${phone}'
-        },
-        theme: {
-          color: '#0094b8',
-          hide_topbar: false
-        },
-        modal: {
-          ondismiss: function() {
-            console.log('Payment modal dismissed');
-            paymentProcessing = false;
-            document.getElementById('pay-button').disabled = false;
-            document.getElementById('loading').classList.remove('active');
-            postMessage({ status: 'cancelled' });
-          },
-          escape: true,
-          backdropclose: false
-        },
-        handler: function(response) {
-          console.log('Payment success handler called', response);
-          postMessage({
-            status: 'success',
-            payment_id: response.razorpay_payment_id,
-            order_id: response.razorpay_order_id,
-            signature: response.razorpay_signature
-          });
-        }
-      };
-      
-      console.log('Razorpay options:', JSON.stringify(options, null, 2));
-      
-      try {
-        console.log('Creating Razorpay instance...');
-        const rzp = new Razorpay(options);
-        console.log('Razorpay instance created');
-        
-        rzp.on('payment.failed', function(response) {
-          console.log('Payment failed event', response.error);
-          paymentProcessing = false;
-          document.getElementById('pay-button').disabled = false;
-          document.getElementById('loading').classList.remove('active');
-          postMessage({
-            status: 'failed',
-            error: response.error
-          });
-        });
-        
-        setTimeout(function() {
-          try {
-            console.log('Calling rzp.open()...');
-            rzp.open();
-            console.log('rzp.open() called successfully');
-          } catch (e) {
-            console.error('Error calling rzp.open():', e);
-            paymentProcessing = false;
-            document.getElementById('pay-button').disabled = false;
-            document.getElementById('loading').classList.remove('active');
-            postMessage({
-              status: 'failed',
-              error: { description: 'Failed to open payment: ' + e.message }
-            });
-          }
-        }, 300);
-        
-      } catch (error) {
-        console.error('Error creating Razorpay instance:', error);
-        paymentProcessing = false;
-        document.getElementById('pay-button').disabled = false;
-        document.getElementById('loading').classList.remove('active');
-        postMessage({
-          status: 'failed',
-          error: { description: 'Failed to initialize payment: ' + error.message }
-        });
-      }
-    }
-    
-    // Log when page is fully ready
-    window.addEventListener('load', function() {
-      console.log('Window fully loaded');
-    });
-  </script>
-</body>
-</html>
-    `;
-  };
-
   return (
-    <View style={styles.wrapper}>
-      {console.log('Render - showRazorpayWebView:', showRazorpayWebView)}
-      {console.log('Render - razorpayOrderId:', razorpayOrderId)}
-      {console.log('Render - Platform.OS:', Platform.OS)}
+    <View style={styles.container}>
       <Header />
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         <View style={styles.formContainer}>
@@ -1002,112 +695,12 @@ export default function AddPatientScreen({ navigation }: any) {
           </View>
         </Modal>
 
-        {/* Razorpay WebView Modal - Only for Mobile */}
-        {Platform.OS !== 'web' && showRazorpayWebView && (
-          <Modal
-            visible={true}
-            animationType="slide"
-            presentationStyle="fullScreen"
-            onRequestClose={() => {
-              console.log('Modal onRequestClose called');
-              setShowRazorpayWebView(false);
-            }}
-          >
-            <View style={styles.webViewContainer}>
-              <View style={styles.webViewHeader}>
-                <Text style={styles.webViewTitle}>Complete Payment (Order: {razorpayOrderId.substring(0, 15)}...)</Text>
-                <TouchableOpacity
-                  onPress={() => {
-                    console.log('Close button pressed');
-                    Alert.alert(
-                      'Cancel Payment',
-                      'Are you sure you want to cancel this payment?',
-                      [
-                        { text: 'No', style: 'cancel' },
-                        {
-                          text: 'Yes',
-                          onPress: () => {
-                            console.log('Closing Razorpay modal');
-                            setShowRazorpayWebView(false);
-                          },
-                          style: 'destructive'
-                        }
-                      ]
-                    );
-                  }}
-                  style={styles.webViewCloseButton}
-                >
-                  <Text style={styles.webViewCloseText}>✕</Text>
-                </TouchableOpacity>
-              </View>
-              {razorpayOrderId ? (
-                <WebView
-                  ref={webViewRef}
-                  source={{ html: getRazorpayHTML() }}
-                  onMessage={handleRazorpayMessage}
-                  javaScriptEnabled={true}
-                  domStorageEnabled={true}
-                  startInLoadingState={true}
-                  renderLoading={() => (
-                    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
-                      <ActivityIndicator size="large" color="#0094b8" />
-                      <Text style={{ marginTop: 10, fontSize: 16, color: '#666' }}>Loading payment...</Text>
-                    </View>
-                  )}
-                  scalesPageToFit={true}
-                  mixedContentMode="always"
-                  allowsInlineMediaPlayback={true}
-                  mediaPlaybackRequiresUserAction={false}
-                  thirdPartyCookiesEnabled={true}
-                  sharedCookiesEnabled={true}
-                  cacheEnabled={false}
-                  incognito={false}
-                  onContentProcessDidTerminate={() => {
-                    console.log('WebView terminated, reloading...');
-                    webViewRef.current?.reload();
-                  }}
-                  onShouldStartLoadWithRequest={(request) => {
-                    console.log('WebView loading:', request.url);
-                    return true;
-                  }}
-                  onLoadStart={(syntheticEvent) => {
-                    console.log('WebView load started');
-                  }}
-                  onLoadEnd={() => {
-                    console.log('WebView loaded successfully');
-                  }}
-                  onError={(syntheticEvent) => {
-                    const { nativeEvent } = syntheticEvent;
-                    console.error('WebView error:', nativeEvent);
-                    Alert.alert('Error', 'Failed to load payment page. Please try again.');
-                    setShowRazorpayWebView(false);
-                  }}
-                  onHttpError={(syntheticEvent) => {
-                    const { nativeEvent } = syntheticEvent;
-                    console.error('WebView HTTP error:', nativeEvent);
-                  }}
-                  originWhitelist={['*']}
-                  style={styles.webView}
-                />
-              ) : (
-                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
-                  <ActivityIndicator size="large" color="#0094b8" />
-                  <Text style={{ marginTop: 10, fontSize: 16, color: '#666' }}>Initializing...</Text>
-                </View>
-              )}
-            </View>
-          </Modal>
-        )}
       </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrapper: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
@@ -1430,41 +1023,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  webViewContainer: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  webViewHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
-    paddingTop: Platform.OS === 'ios' ? 50 : 16,
-    backgroundColor: '#0094b8',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
-  },
-  webViewTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#fff',
-  },
-  webViewCloseButton: {
-    padding: 8,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderRadius: 20,
-    width: 36,
-    height: 36,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  webViewCloseText: {
-    fontSize: 20,
-    color: '#fff',
-    fontWeight: 'bold',
-  },
-  webView: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
 });
+
